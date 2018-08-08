@@ -26,8 +26,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,70 +41,73 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseAuth mAuth;
 
-    private TextView userEmail;
-    private TextView userName;
-
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
-    private DatabaseReference mPostReference = Database.getReference("id_list");
+    private DatabaseReference mPostReference = Database.getReference();
+    private DatabaseReference userdb = Database.getReference("users");
     private GoogleSignInClient mGoogleSignInClient;
 
+    String email, ruser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        mAuth = FirebaseAuth.getInstance();
-        //로그인 됐는지, 로그아웃 됐는지 확인하는 리스너
-        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+        SignInButton button = (SignInButton) findViewById(R.id.loginBtn);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    //로그인
-                    Intent intent=new Intent(getApplicationContext(),MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    //로그아웃 상태
-                }
+            public void onClick(View v) {
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
             }
-        };
+        });
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        mAuth = FirebaseAuth.getInstance();
 
-        SignInButton button =(SignInButton)findViewById(R.id.loginBtn);
-        button.setOnClickListener(new View.OnClickListener(){
 
+
+
+
+        //로그인 됐는지, 로그아웃 됐는지 확인하는 리스너
+   /*     mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
-            public void onClick(View v) {
-                signIn();
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    //로그인
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    //로그아웃 상태
+                }
             }
-        });
-
-
+        };*/
     }
+
     //로그인 됐는지, 로그아웃 됐는지 확인하는 리스너할때 필요한 것 onstart onstopp
     @Override
     protected void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthStateListener);
+        //mAuth.addAuthStateListener(mAuthStateListener);
     }
 
-    @Override
+/*    @Override
     protected void onStop() {
         super.onStop();
-        mAuth.removeAuthStateListener(mAuthStateListener);
-    }
+        //mAuth.removeAuthStateListener(mAuthStateListener);
+    }*/
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -117,8 +123,9 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
     }
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth=FirebaseAuth.getInstance();
+        //mAuth=FirebaseAuth.getInstance();
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -126,12 +133,11 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
+                            postFirebaseDatabase(true);
                             Toast.makeText(loginActivity.this,"환영합니다~!",Toast.LENGTH_LONG).show();
-
-                            Intent intent = new Intent(loginActivity.this, MainActivity.class);
+                            Intent intent = new Intent(getApplication(), MainActivity.class);
                             startActivity(intent);
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            //updateUI(user);
+
 
                         } else {
                             // If sign in fails, display a message to the user.
@@ -147,25 +153,37 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-/*
-    public void postFirebaseDatabase(boolean add){
-        Map<String, Object> childUpdates = new HashMap<>();
-        Map<String, Object> postValues = null;
-        if( edEmail.getText().toString().length()>6) {
-            if (add) {
-                FirebasePost post = new FirebasePost(name.getText().toString(), edPw.getText().toString(),
-                        edEmail.getText().toString(), familyCode.getText().toString(), role);
-                postValues = post.toMap();
+
+    public void postFirebaseDatabase(boolean add) {
+        //db에서 users읽기
+        FirebaseUser user = mAuth.getCurrentUser();
+        email = user.getEmail();
+        ruser = email.substring(0,email.indexOf("."));
+        userdb.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                boolean check = false;
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    if((snapshot.getKey()).equals(ruser)){
+                        check = true;
+                    }
+                }
+                if(check == false)
+                    mPostReference.child("users").child(ruser).child("challenge").setValue("1");
             }
-            String id = edEmail.getText().toString();
-            childUpdates.put(id.substring(0, id.indexOf("@")), postValues);
-            mPostReference.updateChildren(childUpdates);
-        }
-
-    }*/
 
 
-    private void updateUI(FirebaseUser user) {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
+    }
+
+
+
+
+/*    private void updateUI(FirebaseUser user) {
 
         if (user != null) {
 
@@ -176,13 +194,13 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
             userEmail=headerLayout.findViewById(R.id.email);
             userName=headerLayout.findViewById(R.id.name);
 
-            /*userEmail.setText(mAuth.getCurrentUser().getEmail());
-            userName.setText(mAuth.getCurrentUser().getDisplayName());*/
+            *//*userEmail.setText(mAuth.getCurrentUser().getEmail());
+            userName.setText(mAuth.getCurrentUser().getDisplayName());*//*
 
             //userEmail.setText(getString(R.string.google_app_id, user.getEmail()));
             //userName.setText(getString(R.string.firebase_database_url, user.getUid()));
         }
-    }
+    }*/
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 

@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "858137562263-lg8ce399996mogpmars6faanaul5t4pr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bomi.miinsu",
+            "certificate_hash": "7324ef2ac31148d977541a7d1c1c376feddc67d6"
+          }
+        },
+        {
+          "client_id": "858137562263-ljhsr733p1um6mu64mdjjtn3v25mr2bg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bomi.miinsu",
+            "certificate_hash": "032522624e3cfd275d0582b9ac598ad9f246f159"
+          }
+        },
+        {
           "client_id": "858137562263-o2aq54b90f91ou5tcmpqmhuhj6130u27.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,8 +45,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858137562263-o2aq54b90f91ou5tcmpqmhuhj6130u27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2
