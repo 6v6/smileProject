@@ -96,9 +96,9 @@ public class emotionAdapter extends BaseAdapter {
         String root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+Environment.DIRECTORY_DCIM.toString();
 
         Log.d("imgPath:", imgPath);
-        Log.d("imgName:", name[6]);
+        //Log.d("imgName:", name[6]);
 
-    /*    try {
+        try {
             exif = new ExifInterface(imgPath);
             day=getTagString(ExifInterface.TAG_DATETIME, exif);
             //원하는 날짜형식으로 변환하기
@@ -117,11 +117,11 @@ public class emotionAdapter extends BaseAdapter {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
 
-        //String subDate=newDate.substring(2,10);
+        String subDate=newDate.substring(2,10);
 
-        view.setDate(null+"|감정");
+        view.setDate(subDate+"|감정");
         view.setImage(resized);
         return view;
     }
@@ -144,7 +144,7 @@ public class emotionAdapter extends BaseAdapter {
         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,
                 MediaStore.Images.Media.DATA + " like ? ",
-                new String[] {"%facedetect%"},
+                new String[] {"%Foodie%"},
                 null);
 
         Log.d("Images:",MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString());

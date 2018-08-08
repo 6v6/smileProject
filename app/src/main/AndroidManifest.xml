@@ -39,9 +39,14 @@
             android:name=".MissionActivity"
             android:label="@string/title_activity_mission"
             android:theme="@style/AppTheme.NoActionBar" />
+
+
         <activity android:name=".MissionList" />
+        <activity android:name=".camera" />
         <activity android:name=".smileDiary" />
         <activity android:name=".emotionDiary" />
+
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.example.bomi.miinsu"
