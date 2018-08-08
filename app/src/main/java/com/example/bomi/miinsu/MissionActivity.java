@@ -90,33 +90,29 @@ public class MissionActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_emotion) {
-            Toast.makeText(getApplicationContext(),"1",Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
+            startActivity(intent);
 
 
         } else if (id == R.id.nav_smile) {
-            Toast.makeText(getApplicationContext(),"2",Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(getApplicationContext(), smileDiary.class);
+            startActivity(intent);
         }
         else if (id==R.id.nav_logout){
-            //signOut();
+            onLogOut();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-  /*  private void signOut() {
-        // Firebase sign out
-        mAuth=FirebaseAuth.getInstance();
+    public void onLogOut() {
+        mAuth = FirebaseAuth.getInstance();
         mAuth.signOut();
-        // Google sign out
-        mGoogleSignInClient.signOut().addOnCompleteListener(this,
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-
-                    }
-                });
-    }*/
+        finish();
+        Intent intent=new Intent(getApplicationContext(),loginActivity.class);
+        startActivity(intent);
+    }
 
     public void onMissonStart(View view) {
         Intent intent=new Intent(getApplicationContext(),MissionList.class);

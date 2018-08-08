@@ -1,8 +1,18 @@
 package com.example.bomi.miinsu;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,6 +48,8 @@ import java.util.Map;
 public class loginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "GoogleActivity";
     private static final int RC_SIGN_IN = 9001;
+    private static final int PERMISSIONS_REQUEST_CODE = 101;
+
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private FirebaseAuth mAuth;
 
@@ -52,6 +64,28 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         SignInButton button = (SignInButton) findViewById(R.id.loginBtn);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            int cp = ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA);
+            int wp = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            int rp = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+            if ( cp == PackageManager.PERMISSION_GRANTED
+                    && rp==PackageManager.PERMISSION_GRANTED){
+                ;//이미 퍼미션을 가지고 있음
+                //GoMain();
+            }
+            else {
+                //퍼미션 요청
+                ActivityCompat.requestPermissions( this,
+                        new String[]{Manifest.permission.CAMERA,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSIONS_REQUEST_CODE);
+            }
+        }
+        else{ }
+
+        //로그인 버튼
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,40 +101,142 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         mAuth = FirebaseAuth.getInstance();
-
-
-
-
-
+/*
         //로그인 됐는지, 로그아웃 됐는지 확인하는 리스너
-   /*     mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     //로그인
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                    finish();
+                   GoMain();
                 } else {
                     //로그아웃 상태
                 }
             }
         };*/
     }
-
+private void GoMain(){
+    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+    startActivity(intent);
+}
     //로그인 됐는지, 로그아웃 됐는지 확인하는 리스너할때 필요한 것 onstart onstopp
     @Override
     protected void onStart() {
         super.onStart();
         //mAuth.addAuthStateListener(mAuthStateListener);
     }
-
-/*    @Override
+    @Override
     protected void onStop() {
         super.onStop();
         //mAuth.removeAuthStateListener(mAuthStateListener);
-    }*/
+    }
+@TargetApi(Build.VERSION_CODES.M)
+  private void checkPermissions() {
+    int cp = ContextCompat.checkSelfPermission(this,
+            android.Manifest.permission.CAMERA);
+    int wp =
+            ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    int rp =
+            ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE);
+
+    boolean cameraRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
+            android.Manifest.permission.CAMERA);
+    boolean writeExternalStorageRationale =
+            ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+
+    if ( (cp == PackageManager.PERMISSION_DENIED && cameraRationale)
+            || (wp== PackageManager.PERMISSION_DENIED
+            && writeExternalStorageRationale))
+        showDialogForPermission("앱을 실행하려면 퍼미션을 허가하셔야합니다.");
+
+    else if ( (cp == PackageManager.PERMISSION_DENIED && !cameraRationale)
+            || (wp== PackageManager.PERMISSION_DENIED
+            && !writeExternalStorageRationale))
+        showDialogForPermissionSetting("퍼미션 거부 + Don't ask again(다시 묻지 않음) " +
+                "체크 박스를 설정한 경우로 설정에서 퍼미션 허가해야합니다.");
+
+    else if ( cp == PackageManager.PERMISSION_GRANTED
+            || wp== PackageManager.PERMISSION_GRANTED ) {
+    }
+}
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grandResults) {
+
+        if ( requestCode == PERMISSIONS_REQUEST_CODE && grandResults.length > 0) {
+
+            int cp = ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.CAMERA);
+            int wp =
+                    ContextCompat.checkSelfPermission(this,
+                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            int rp =
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.READ_EXTERNAL_STORAGE);
+            if ( cp == PackageManager.PERMISSION_GRANTED
+                    && rp == PackageManager.PERMISSION_GRANTED ){
+                //이미 퍼미션을 가지고 있음
+               //GoMain();
+                }
+            else{
+                checkPermissions();
+            }
+        }
+
+    }
+    @TargetApi(Build.VERSION_CODES.M)
+    private void showDialogForPermission(String msg) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(loginActivity.this);
+        builder.setTitle("알림");
+        builder.setMessage(msg);
+        builder.setCancelable(false);
+        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+//퍼미션 요청
+                ActivityCompat.requestPermissions( loginActivity.this,
+                        new String[]{android.Manifest.permission.CAMERA,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSIONS_REQUEST_CODE);
+            }
+        });
+
+        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+        builder.create().show();
+    }
+
+    private void showDialogForPermissionSetting(String msg) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(loginActivity.this);
+        builder.setTitle("알림");
+        builder.setMessage(msg);
+        builder.setCancelable(true);
+        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+                Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + getApplicationContext().getPackageName()));
+                myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+                myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(myAppSettings);
+            }
+        });
+        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                finish();
+            }
+        });
+        builder.create().show();
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -121,6 +257,7 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
             }
         }
     }
+
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
@@ -179,28 +316,6 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
         });
 
     }
-
-
-
-
-/*    private void updateUI(FirebaseUser user) {
-
-        if (user != null) {
-
-            //textview
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            View headerLayout = navigationView.inflateHeaderView(R.layout.nav_header_main);
-
-            userEmail=headerLayout.findViewById(R.id.email);
-            userName=headerLayout.findViewById(R.id.name);
-
-            *//*userEmail.setText(mAuth.getCurrentUser().getEmail());
-            userName.setText(mAuth.getCurrentUser().getDisplayName());*//*
-
-            //userEmail.setText(getString(R.string.google_app_id, user.getEmail()));
-            //userName.setText(getString(R.string.firebase_database_url, user.getUid()));
-        }
-    }*/
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 

@@ -82,11 +82,11 @@ public class emotionAdapter extends BaseAdapter {
         BitmapFactory.Options bo = new BitmapFactory.Options();
         bo.inSampleSize = 8;
 
-        Bitmap bmp = BitmapFactory.decodeFile(thumbsDataList.get(position), bo);
-        Bitmap resized = Bitmap.createScaledBitmap(bmp, 95, 95, true);
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
-
+        Log.d("thumbsDataList:", String.valueOf(thumbsDataList));
+        Bitmap bmp = BitmapFactory.decodeFile(thumbsDataList.get(position), bo);
+        Bitmap resized = Bitmap.createScaledBitmap(bmp, 95, 95, true);
 
         File dir = new File (imgPath);
         dir.mkdirs();
@@ -98,8 +98,7 @@ public class emotionAdapter extends BaseAdapter {
         Log.d("imgPath:", imgPath);
         Log.d("imgName:", name[6]);
 
-
-        try {
+    /*    try {
             exif = new ExifInterface(imgPath);
             day=getTagString(ExifInterface.TAG_DATETIME, exif);
             //원하는 날짜형식으로 변환하기
@@ -118,11 +117,11 @@ public class emotionAdapter extends BaseAdapter {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
-        String subDate=newDate.substring(2,10);
+        //String subDate=newDate.substring(2,10);
 
-        view.setDate(subDate+"|감정");
+        view.setDate(null+"|감정");
         view.setImage(resized);
         return view;
     }
@@ -140,8 +139,7 @@ public class emotionAdapter extends BaseAdapter {
         /*File sdCard = Environment.getExternalStorageDirectory();
         File dir = new File (sdCard.getAbsolutePath() + "/4440");
         dir.mkdirs();*/
-/*
-        Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+      /*  Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 proj, null, null, null);*/
         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,

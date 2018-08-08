@@ -140,10 +140,11 @@ public class smileAdapter extends BaseAdapter {
         /*File sdCard = Environment.getExternalStorageDirectory();
         File dir = new File (sdCard.getAbsolutePath() + "/4440");
         dir.mkdirs();*/
-/*
-        Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+
+    /*Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 proj, null, null, null);*/
-        Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
+
+         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,
                 MediaStore.Images.Media.DATA + " like ? ",
                 new String[] {"%facedetect%"},
