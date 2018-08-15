@@ -119,46 +119,7 @@ public class MissionActivity extends AppCompatActivity
     }
 
     public void onMissonStart(View view) {
-        Intent intent=new Intent(getApplicationContext(),MissionList.class);
+        Intent intent = new Intent(getApplication(), FaceDetectGrayActivity.class);
         startActivity(intent);
     }
-
-    public void onCamera(View view) {
-        Button btnCameraGray = (Button) findViewById(R.id.button2);
-        btnCameraGray.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, FaceDetectGrayActivity.class);
-                    startActivity(intent);
-                } else {
-                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_GRAY);
-                }
-            }
-        });
-
-    }
-
-    private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
-        Log.d(TAG, "Camera permission is not granted. Requesting permission");
-
-        final String[] permissions = new String[]{Manifest.permission.CAMERA};
-
-        ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-
-        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == RC_HANDLE_CAMERA_PERM_GRAY) {
-            Intent intent = new Intent(mContext, FaceDetectGrayActivity.class);
-            startActivity(intent);
-            return;
-        }
-
-        Log.d(TAG, "Permission not granted: results len = " + grantResults.length +
-                " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
-    }
-
 }

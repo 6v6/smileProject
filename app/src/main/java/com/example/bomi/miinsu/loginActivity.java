@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bomi.miinsu.activity.FaceDetectGrayActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -131,6 +132,8 @@ private void GoMain(){
         super.onStop();
         //mAuth.removeAuthStateListener(mAuthStateListener);
     }
+
+    //권한 설정 //읽기,쓰기,카메라
 @TargetApi(Build.VERSION_CODES.M)
   private void checkPermissions() {
     int cp = ContextCompat.checkSelfPermission(this,
@@ -272,7 +275,7 @@ private void GoMain(){
                             Log.d(TAG, "signInWithCredential:success");
                             postFirebaseDatabase(true);
                             Toast.makeText(loginActivity.this,"환영합니다~!",Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(getApplication(), MainActivity.class);
+                            Intent intent = new Intent(getApplication(), FaceDetectGrayActivity.class);
                             startActivity(intent);
 
 

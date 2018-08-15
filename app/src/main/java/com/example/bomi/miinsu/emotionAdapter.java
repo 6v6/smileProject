@@ -1,33 +1,27 @@
 package com.example.bomi.miinsu;
 
-import android.Manifest;
-import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
-import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 public class emotionAdapter extends BaseAdapter {
     private String imgData;
@@ -44,12 +38,13 @@ public class emotionAdapter extends BaseAdapter {
 
     }
 
-    /*  public final void callImageViewer(int selectedIndex){
-          Intent i = new Intent(mContext, ImagePopup.class);
-          String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(selectedIndex));
-          i.putExtra("filename", imgPath);
-          startActivityForResult(i, 1);
-      }*/
+    public final void ImageViewer(int selectedIndex){
+        Intent intent = new Intent(mContext, ImagePreview.class);
+        String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(selectedIndex));
+        intent.putExtra("filename", imgPath);
+        mContext.startActivity(intent);
+    }
+
     public boolean deleteSelected(int sIndex){
         return true;
     }
@@ -79,24 +74,17 @@ public class emotionAdapter extends BaseAdapter {
         String newDate=null;
 
         SingerItemView view = new SingerItemView(mContext);
-        BitmapFactory.Options bo = new BitmapFactory.Options();
-        bo.inSampleSize = 8;
 
+        BitmapFactory.Options bo = new BitmapFactory.Options();
+        bo.inSampleSize = 6;
+        ContentResolver cr = mContext.getApplicationContext().getContentResolver();
+        int id = Integer.parseInt(thumbsIDList.get(position));
+        Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(cr, id, MediaStore.Images.Thumbnails.MICRO_KIND, bo);
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
-        Log.d("thumbsDataList:", String.valueOf(thumbsDataList));
-        Bitmap bmp = BitmapFactory.decodeFile(thumbsDataList.get(position), bo);
-        Bitmap resized = Bitmap.createScaledBitmap(bmp, 95, 95, true);
-
-        File dir = new File (imgPath);
-        dir.mkdirs();
-
-        //이미지 이름
-        String name[]=imgPath.split("/");
-        String root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+Environment.DIRECTORY_DCIM.toString();
 
         Log.d("imgPath:", imgPath);
-        //Log.d("imgName:", name[6]);
+
 
         try {
             exif = new ExifInterface(imgPath);
@@ -122,10 +110,9 @@ public class emotionAdapter extends BaseAdapter {
         String subDate=newDate.substring(2,10);
 
         view.setDate(subDate+"|감정");
-        view.setImage(resized);
+        view.setImage(bitmap);
         return view;
     }
-
     private String getTagString(String tag, ExifInterface exif) {
         return exif.getAttribute(tag);
     }
@@ -136,11 +123,6 @@ public class emotionAdapter extends BaseAdapter {
                 MediaStore.Images.Media.DISPLAY_NAME,
                 MediaStore.Images.Media.SIZE};
 
-        /*File sdCard = Environment.getExternalStorageDirectory();
-        File dir = new File (sdCard.getAbsolutePath() + "/4440");
-        dir.mkdirs();*/
-      /*  Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                proj, null, null, null);*/
         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,
                 MediaStore.Images.Media.DATA + " like ? ",
@@ -197,7 +179,6 @@ public class emotionAdapter extends BaseAdapter {
         imageCursor.close();
         return imageDataPath;
     }
-
 }
 
 

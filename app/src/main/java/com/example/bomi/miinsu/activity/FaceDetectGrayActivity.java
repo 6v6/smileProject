@@ -1,13 +1,23 @@
 package com.example.bomi.miinsu.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -17,39 +27,39 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 
+import com.example.bomi.miinsu.MainActivity;
 import com.example.bomi.miinsu.activity.ui.FaceOverlayView;
 import com.example.bomi.miinsu.adapter.ImagePreviewAdapter;
+import com.example.bomi.miinsu.camera;
 import com.example.bomi.miinsu.model.FaceResult;
 import com.example.bomi.miinsu.utils.CameraErrorCallback;
 import com.example.bomi.miinsu.R;
 import com.example.bomi.miinsu.utils.ImageUtils;
 import com.example.bomi.miinsu.utils.Util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by Nguyen on 5/20/2016.
- */
-
-/**
- * FACE DETECT EVERY FRAME WIL CONVERT TO GRAY BITMAP SO THIS HAS HIGHER PERFORMANCE THAN RGB BITMAP
- * COMPARE FPS (DETECT FRAME PER SECOND) OF 2 METHODs FOR MORE DETAIL
- */
-
 public final class FaceDetectGrayActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     // Number of Cameras in device.
     private int numberOfCameras;
-
+    private final static int CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
     public static final String TAG = FaceDetectGrayActivity.class.getSimpleName();
 
     private Camera mCamera;
@@ -64,6 +74,8 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
     // The surface view for the camera data
     private SurfaceView mView;
+    private SurfaceHolder holder;
+    private Paint paint = new Paint();
 
     // Draw rectangles and other fancy stuff:
     private FaceOverlayView mFaceView;
@@ -89,6 +101,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private int Id = 0;
 
     private String BUNDLE_CAMERA_ID = "camera";
+
 
 
     //RecylerView face image
@@ -137,7 +150,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Face Detect Gray");
+        getSupportActionBar().setTitle("얼굴확인");
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
@@ -430,20 +443,41 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         }
 
         public void run() {
-//            Log.i("FaceDetectThread", "running");
 
             float aspect = (float) previewHeight / (float) previewWidth;
             int w = prevSettingWidth;
             int h = (int) (prevSettingWidth * aspect);
-
+            int orientation = setCameraDisplayOrientation(FaceDetectGrayActivity.this,
+                    CAMERA_FACING, mCamera);
             ByteBuffer bbuffer = ByteBuffer.wrap(data);
             bbuffer.get(grayBuff, 0, bufflen);
 
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
             Bitmap bitmap = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.RGB_565);
-
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
 
+            /*//이미지를 디바이스 방향으로 회전
+            Matrix matrix = new Matrix();
+            matrix.postRotate(orientation);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);*/
+
+            //bitmap을 byte array로 변환
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            final byte[] currentData = stream.toByteArray();
+
+            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
+
+            //버튼눌러캡쳐
+            Button button = (Button)findViewById(R.id.btnCapture);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new SaveImageTask().execute(currentData);
+                    Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            });
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
 
@@ -609,5 +643,69 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         } else {
             imagePreviewAdapter.clearAll();
         }
+    }
+    private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
+
+        @Override
+        protected Void doInBackground(byte[]... data) {
+            FileOutputStream outStream = null;
+
+        // Write to SD Card
+            try {
+                File sdCard = Environment.getExternalStorageDirectory();
+                File dir = new File (sdCard.getAbsolutePath() + "/Testtest");
+                dir.mkdirs();
+
+                String fileName = String.format("%d.jpg", System.currentTimeMillis());
+                File outFile = new File(dir, fileName);
+
+                outStream = new FileOutputStream(outFile);
+                outStream.write(data[0]);
+                outStream.flush();
+                outStream.close();
+
+                Log.d(TAG, "onPictureTaken - wrote bytes: " + data.length + " to "
+                        + outFile.getAbsolutePath());
+
+                refreshGallery(outFile);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+            }
+            return null;
+        }
+        private void refreshGallery(File file) {
+            Intent mediaScanIntent = new Intent( Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            mediaScanIntent.setData(Uri.fromFile(file));
+            sendBroadcast(mediaScanIntent);
+        }
+
+    }
+    public static int setCameraDisplayOrientation(Activity activity,
+                                                  int cameraId, android.hardware.Camera camera) {
+        android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay()
+                .getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360; // compensate the mirror
+        } else { // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+
+        return result;
     }
 }
