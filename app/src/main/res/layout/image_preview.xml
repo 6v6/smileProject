@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout
+        android:id="@+id/lin_photo"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="400sp"
+            android:layout_height="400sp"
+            android:layout_gravity="center"
+            android:padding="3px"/>
+
+        <TextView
+            android:id="@+id/photoText"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingTop="10sp"
+            android:textSize="30sp"
+            android:text="한줄평----" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/lin_bottom"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+        <EditText
+            android:id="@+id/aboutPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint=" 한줄평 남기기" />
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="저장" />
+    </LinearLayout>
+</FrameLayout>
