@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +68,8 @@ public class MainActivity extends AppCompatActivity
 
         userEmail = (TextView) headerView.findViewById(R.id.email);
         userName = (TextView) headerView.findViewById(R.id.name);
+
+
         day = (TextView) findViewById(R.id.textView);
 
         userEmail.setText(email);

@@ -23,7 +23,6 @@
             android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -32,7 +31,7 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
+            android:label="DAY"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.FaceDetectGrayActivity"
@@ -67,7 +66,8 @@
             android:value="@string/google_maps_key" />
 
         <activity android:name=".AlarmViewActivity" />
-        <activity android:name=".AlarmActivity" />
+        <activity android:name=".AlarmActivity"
+            android:label="알람설정" />
         <activity android:name=".ImagePreview" />
         <receiver
             android:name=".LocationReceiver"
