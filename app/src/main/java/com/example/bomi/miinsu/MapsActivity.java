@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -92,10 +93,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             longitude = addressList.get(0).getLongitude();
             addr = addressList.get(0).getAddressLine(0);
         } catch (IOException e) {
+            Toast.makeText(this, "없는 주소입니다.",Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
 
         System.out.println("lati: "+latitude+" / long: "+longitude+" / addr: "+addr);
+        Toast.makeText(this,"lati: "+latitude+" / long: "+longitude+" / addr: "+addr,Toast.LENGTH_LONG).show();
         //, 기준으로 나누기
 
         //좌표 생성
