@@ -5,10 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -19,10 +15,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,11 +28,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.example.bomi.miinsu.ClMLHandler;
 import com.example.bomi.miinsu.MainActivity;
 import com.example.bomi.miinsu.activity.ui.FaceOverlayView;
 import com.example.bomi.miinsu.adapter.ImagePreviewAdapter;
-import com.example.bomi.miinsu.camera;
 import com.example.bomi.miinsu.model.FaceResult;
 import com.example.bomi.miinsu.utils.CameraErrorCallback;
 import com.example.bomi.miinsu.R;
@@ -84,7 +79,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private final CameraErrorCallback mErrorCallback = new CameraErrorCallback();
 
 
-    private static final int MAX_FACE = 10;
+    private static final int MAX_FACE = 1;
     private boolean isThreadWorking = false;
     private Handler handler;
     private FaceDetectThread detectThread = null;
@@ -103,14 +98,16 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private String BUNDLE_CAMERA_ID = "camera";
 
 
-
     //RecylerView face image
     private HashMap<Integer, Integer> facesCount = new HashMap<>();
-    private RecyclerView recyclerView;
     private ImagePreviewAdapter imagePreviewAdapter;
     private ArrayList<Bitmap> facesBitmap;
 
+    private  ClMLHandler clml;
+    private String  happy;
+    private TextView smileTv;
 
+    private Button button;
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -123,7 +120,16 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         super.onCreate(icicle);
 
         setContentView(R.layout.activity_camera_viewer);
+        button = (Button)findViewById(R.id.btnCapture);
 
+        //cloud ml 연결
+        StrictMode.ThreadPolicy policy = new
+                StrictMode.ThreadPolicy.Builder()
+                .permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        clml = new ClMLHandler(this);
+        smileTv = (TextView)findViewById(R.id.smileText);
         mView = (SurfaceView) findViewById(R.id.surfaceview);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -131,13 +137,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         mFaceView = new FaceOverlayView(this);
         addContentView(mFaceView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         // Create and Start the OrientationListener:
-
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-
         handler = new Handler();
         faces = new FaceResult[MAX_FACE];
         faces_previous = new FaceResult[MAX_FACE];
@@ -150,7 +149,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("얼굴확인");
+        getSupportActionBar().setTitle("웃음확인");
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
@@ -171,20 +170,16 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_camera, menu);
-
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case android.R.id.home:
                 super.onBackPressed();
                 return true;
-
             case R.id.switchCam:
-
                 if (numberOfCameras == 1) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Switch Camera").setMessage("Your device have one camera").setNeutralButton("Close", null);
@@ -192,13 +187,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     alert.show();
                     return true;
                 }
-
                 cameraId = (cameraId + 1) % numberOfCameras;
                 recreate();
-
                 return true;
-
-
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -373,7 +364,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             isThreadWorking = false;
             mCamera.startPreview();
             mCamera.setPreviewCallback(this);
-            counter = 0;
         }
     }
 
@@ -387,17 +377,12 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     }
 
 
-    // fps detect face (not FPS of camera)
-    long start, end;
-    int counter = 0;
-    double fps;
+
+
 
     @Override
     public void onPreviewFrame(byte[] _data, Camera _camera) {
         if (!isThreadWorking) {
-            if (counter == 0)
-                start = System.currentTimeMillis();
-
             isThreadWorking = true;
             waitForFdetThreadComplete();
             detectThread = new FaceDetectThread(handler, this);
@@ -419,8 +404,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 e.printStackTrace();
             }
         }
-
     }
+
+
 
 
     /**
@@ -437,13 +423,11 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             this.handler = handler;
         }
 
-
         public void setData(byte[] data) {
             this.data = data;
         }
 
         public void run() {
-
             float aspect = (float) previewHeight / (float) previewWidth;
             int w = prevSettingWidth;
             int h = (int) (prevSettingWidth * aspect);
@@ -453,22 +437,22 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             bbuffer.get(grayBuff, 0, bufflen);
 
             Bitmap bitmap = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.RGB_565);
+            Bitmap bitmap2 = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.ARGB_4444);
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
 
-            /*//이미지를 디바이스 방향으로 회전
-            Matrix matrix = new Matrix();
+            //이미지를 디바이스 방향으로 회전
+      /*      Matrix matrix = new Matrix();
             matrix.postRotate(orientation);
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);*/
 
             //bitmap을 byte array로 변환
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             final byte[] currentData = stream.toByteArray();
 
             gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
 
-            //버튼눌러캡쳐
-            Button button = (Button)findViewById(R.id.btnCapture);
+            //버튼눌러 값 전송
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -478,6 +462,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     finish();
                 }
             });
+
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
 
@@ -508,7 +493,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             }
 
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
-
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
             fdet.findFaces(bmp, fullResults);
 
@@ -518,15 +502,13 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 } else {
                     PointF mid = new PointF();
                     fullResults[i].getMidPoint(mid);
-
                     mid.x *= xScale;
                     mid.y *= yScale;
 
                     float eyesDis = fullResults[i].eyesDistance() * xScale;
-                    float confidence = fullResults[i].confidence();
+                  //  float confidence = fullResults[i].confidence();
                     float pose = fullResults[i].pose(android.media.FaceDetector.Face.EULER_Y);
                     int idFace = Id;
-
                     Rect rect = new Rect(
                             (int) (mid.x - eyesDis * 1.20f),
                             (int) (mid.y - eyesDis * 0.55f),
@@ -557,9 +539,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
                         if (idFace == Id) Id++;
 
-                        faces[i].setFace(idFace, mid, eyesDis, confidence, pose, System.currentTimeMillis());
+                        faces[i].setFace(idFace, mid, eyesDis, pose, System.currentTimeMillis());
 
-                        faces_previous[i].set(faces[i].getId(), faces[i].getMidEye(), faces[i].eyesDistance(), faces[i].getConfidence(), faces[i].getPose(), faces[i].getTime());
+                        faces_previous[i].set(faces[i].getId(), faces[i].getMidEye(), faces[i].eyesDistance(), faces[i].getPose(), faces[i].getTime());
 
                         //
                         // if focus in a face 5 frame -> take picture face display in RecyclerView
@@ -571,13 +553,24 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             int count = facesCount.get(idFace) + 1;
                             if (count <= 5)
                                 facesCount.put(idFace, count);
-
                             //
                             // Crop Face to display in RecylerView
                             //
                             if (count == 5) {
-                                faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
+                                faceCroped = ImageUtils.cropFace(faces[i], bitmap2, rotate);
                                 if (faceCroped != null) {
+                                    happy = clml.sendRequestToCMLE(faceCroped);
+                                    happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
+                                    Log.e("response::",happy);
+                                    //잠금해제
+                                    if(Double.parseDouble(happy)>0.3) {
+                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                    else{
+                                        setText(smileTv,(int)(Double.parseDouble(happy)*100)+"%\n활짝 웃어보세요!");
+                                    }
                                     handler.post(new Runnable() {
                                         public void run() {
                                             imagePreviewAdapter.add(faceCroped);
@@ -594,19 +587,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 public void run() {
                     //send face to FaceView to draw rect
                     mFaceView.setFaces(faces);
-
-                    //Calculate FPS (Detect Frame per Second)
-                    end = System.currentTimeMillis();
-                    counter++;
-                    double time = (double) (end - start) / 1000;
-                    if (time != 0)
-                        fps = counter / time;
-
-                    mFaceView.setFPS(fps);
-
-                    if (counter == (Integer.MAX_VALUE - 1000))
-                        counter = 0;
-
                     isThreadWorking = false;
                 }
             });
@@ -639,11 +619,12 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     imagePreviewAdapter.notifyDataSetChanged();
                 }
             });
-            recyclerView.setAdapter(imagePreviewAdapter);
         } else {
             imagePreviewAdapter.clearAll();
         }
     }
+
+    //사진 저장
     private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
 
         @Override
@@ -656,6 +637,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 File dir = new File (sdCard.getAbsolutePath() + "/Testtest");
                 dir.mkdirs();
 
+                //fileName : 측정 값
                 String fileName = String.format("%d.jpg", System.currentTimeMillis());
                 File outFile = new File(dir, fileName);
 
@@ -683,6 +665,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         }
 
     }
+
     public static int setCameraDisplayOrientation(Activity activity,
                                                   int cameraId, android.hardware.Camera camera) {
         android.hardware.Camera.CameraInfo info =
@@ -697,7 +680,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             case Surface.ROTATION_180: degrees = 180; break;
             case Surface.ROTATION_270: degrees = 270; break;
         }
-
         int result;
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
@@ -705,7 +687,15 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         } else { // back-facing
             result = (info.orientation - degrees + 360) % 360;
         }
-
         return result;
+    }
+
+    private void setText(final TextView text,final String value){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                text.setText(value);
+            }
+        });
     }
 }

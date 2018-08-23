@@ -46,7 +46,6 @@
 
 
         <activity android:name=".MissionList" />
-        <activity android:name=".camera" />
         <activity android:name=".smileDiary"
             android:label="웃음일기"/>
         <activity android:name=".emotionDiary"

@@ -2,6 +2,7 @@ package com.example.bomi.miinsu;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -74,6 +76,7 @@ public class MainActivity extends AppCompatActivity
 
         userEmail.setText(email);
         userName.setText(mAuth.getCurrentUser().getDisplayName().toString());
+
 
         mPostReference.addValueEventListener(new ValueEventListener() {
             @Override

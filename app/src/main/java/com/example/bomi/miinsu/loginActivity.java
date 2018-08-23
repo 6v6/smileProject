@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -116,6 +117,12 @@ public class loginActivity extends AppCompatActivity implements GoogleApiClient.
                 }
             }
         };*/
+
+        StrictMode.ThreadPolicy policy = new
+                StrictMode.ThreadPolicy.Builder()
+                .permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
     }
 private void GoMain(){
     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
@@ -274,9 +281,11 @@ private void GoMain(){
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             postFirebaseDatabase(true);
+
                             Toast.makeText(loginActivity.this,"환영합니다~!",Toast.LENGTH_LONG).show();
                             Intent intent = new Intent(getApplication(), FaceDetectGrayActivity.class);
                             startActivity(intent);
+
 
 
                         } else {

@@ -1,21 +1,31 @@
 package com.example.bomi.miinsu;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
+
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,8 +92,19 @@ public class emotionAdapter extends BaseAdapter {
         Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(cr, id, MediaStore.Images.Thumbnails.MICRO_KIND, bo);
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
+        Log.d("thumbsDataList:", String.valueOf(thumbsDataList));
+        Bitmap bmp = BitmapFactory.decodeFile(thumbsDataList.get(position), bo);
+        Bitmap resized = Bitmap.createScaledBitmap(bmp, 95, 95, true);
+
+        File dir = new File (imgPath);
+        dir.mkdirs();
+
+        //이미지 이름
+        String name[]=imgPath.split("/");
+        String root = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+Environment.DIRECTORY_DCIM.toString();
 
         Log.d("imgPath:", imgPath);
+
 
 
         try {
@@ -179,6 +200,7 @@ public class emotionAdapter extends BaseAdapter {
         imageCursor.close();
         return imageDataPath;
     }
+
 }
 
 

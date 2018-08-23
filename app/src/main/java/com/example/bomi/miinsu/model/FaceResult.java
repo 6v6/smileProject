@@ -2,15 +2,11 @@ package com.example.bomi.miinsu.model;
 
 import android.graphics.PointF;
 
-/**
- * Created by Nguyen on 5/20/2016.
- */
 
 public class FaceResult extends Object {
 
     private PointF midEye;
     private float eyeDist;
-    private float confidence;
     private float pose;
     private int id;
     private long time;
@@ -19,25 +15,23 @@ public class FaceResult extends Object {
         id = 0;
         midEye = new PointF(0.0f, 0.0f);
         eyeDist = 0.0f;
-        confidence = 0.4f;
         pose = 0.0f;
         time = System.currentTimeMillis();
     }
 
 
-    public void setFace(int id, PointF midEye, float eyeDist, float confidence, float pose, long time) {
-        set(id, midEye, eyeDist, confidence, pose, time);
+    public void setFace(int id, PointF midEye, float eyeDist, float pose, long time) {
+        set(id, midEye, eyeDist, pose, time);
     }
 
     public void clear() {
-        set(0, new PointF(0.0f, 0.0f), 0.0f, 0.4f, 0.0f, System.currentTimeMillis());
+        set(0, new PointF(0.0f, 0.0f), 0.0f, 0.0f, System.currentTimeMillis());
     }
 
-    public synchronized void set(int id, PointF midEye, float eyeDist, float confidence, float pose, long time) {
+    public synchronized void set(int id, PointF midEye, float eyeDist, float pose, long time) {
         this.id = id;
         this.midEye.set(midEye);
         this.eyeDist = eyeDist;
-        this.confidence = confidence;
         this.pose = pose;
         this.time = time;
     }
@@ -60,14 +54,6 @@ public class FaceResult extends Object {
 
     public void setMidEye(PointF midEye) {
         this.midEye = midEye;
-    }
-
-    public float getConfidence() {
-        return confidence;
-    }
-
-    public void setConfidence(float confidence) {
-        this.confidence = confidence;
     }
 
     public float getPose() {
