@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -40,6 +45,7 @@ import com.example.bomi.miinsu.R;
 import com.example.bomi.miinsu.utils.ImageUtils;
 import com.example.bomi.miinsu.utils.Util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,6 +53,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -104,10 +111,12 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private ArrayList<Bitmap> facesBitmap;
 
     private  ClMLHandler clml;
-    private String  happy;
+    private String  happy ="";
     private TextView smileTv;
-
+    Calendar calendar = Calendar.getInstance();
+    int month, day;
     private Button button;
+
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -153,6 +162,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
+
+
+
     }
 
 
@@ -436,8 +448,8 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             ByteBuffer bbuffer = ByteBuffer.wrap(data);
             bbuffer.get(grayBuff, 0, bufflen);
 
-            Bitmap bitmap = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.RGB_565);
-            Bitmap bitmap2 = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.ARGB_4444);
+
+            Bitmap bitmap = Bitmap.createBitmap(rgbs,previewWidth, previewHeight, Bitmap.Config.RGB_565);
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
 
             //이미지를 디바이스 방향으로 회전
@@ -445,23 +457,21 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             matrix.postRotate(orientation);
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);*/
 
-            //bitmap을 byte array로 변환
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            final byte[] currentData = stream.toByteArray();
 
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
+
 
             //버튼눌러 값 전송
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new SaveImageTask().execute(currentData);
                     Intent intent=new Intent(getApplicationContext(),MainActivity.class);
                     startActivity(intent);
                     finish();
                 }
             });
+
+
+            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
 
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
@@ -475,6 +485,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 } else
                     rotate = rotate + 180;
             }
+
 
             switch (rotate) {
                 case 90:
@@ -491,6 +502,8 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     yScale = (float) previewWidth / (float) prevSettingWidth;
                     break;
             }
+
+
 
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
@@ -557,13 +570,46 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             // Crop Face to display in RecylerView
                             //
                             if (count == 5) {
-                                faceCroped = ImageUtils.cropFace(faces[i], bitmap2, rotate);
+                                faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
+                                    SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pref.edit();
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
-                                    Log.e("response::",happy);
-                                    //잠금해제
-                                    if(Double.parseDouble(happy)>0.3) {
+                                    if(Double.parseDouble(happy)>0.1) {
+                                        if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) == calendar.get(Calendar.DAY_OF_MONTH)) {
+                                            //사진회전
+                                            //Bitmap rbitmap= ImageUtils.rotate(bitmap,rotate);
+                                            //이미지 저장
+                                            YuvImage yuv = new YuvImage(data, ImageFormat.NV21,
+                                                    bitmap.getWidth(), bitmap.getHeight(), null);
+                                            Rect rectImage = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+                                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                            if (!yuv.compressToJpeg(rectImage, 100, stream)) {
+                                                Log.e("CreateBitmap", "compressToJpeg failed");
+                                            }
+                                            //위에 내용 안쓰면'int android.graphics.Bitmap.getWidth()' on a null object reference 오류
+                                            BitmapFactory.Options bfo = new BitmapFactory.Options();
+                                            bfo.inPreferredConfig = Bitmap.Config.RGB_565;
+                                            bitmap = BitmapFactory.decodeStream(
+                                                    new ByteArrayInputStream(stream.toByteArray()), null, bfo);
+                                            Bitmap bmp2 = Bitmap.createScaledBitmap(bitmap, w, h, false);
+                                            bmp2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                            final byte[] currentData = stream.toByteArray();
+
+                                            //bitmap을 byte array로 변환
+                                            //rbitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                           // final byte[] currentData = stream.toByteArray();
+                                            //사진저장
+                                            new SaveImageTaskS().execute(currentData);
+                                            //지금 날짜 저장
+                                            editor.putInt("preday", calendar.get(Calendar.DAY_OF_MONTH));
+                                        }
+                                        //해피 값 저장
+                                        Log.e("responsehappy::",happy);
+                                        editor.putFloat("happy", Float.parseFloat(happy));
+                                        editor.commit();
+                                        //잠금해제
                                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                         startActivity(intent);
                                         finish();
@@ -625,7 +671,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     }
 
     //사진 저장
-    private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
+    private class SaveImageTaskS extends AsyncTask<byte[], Void, Void> {
 
         @Override
         protected Void doInBackground(byte[]... data) {
@@ -633,12 +679,18 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
         // Write to SD Card
             try {
+
+
                 File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File (sdCard.getAbsolutePath() + "/Testtest");
+                File dir = new File (sdCard.getAbsolutePath() + "/smileDiary");
                 dir.mkdirs();
 
                 //fileName : 측정 값
-                String fileName = String.format("%d.jpg", System.currentTimeMillis());
+                String shappy = (int)(Double.parseDouble(happy)*100)+"";
+                String year = calendar.get(Calendar.YEAR)+"";
+                String month = calendar.get(Calendar.MONTH)+1+"";
+                String day = calendar.get(Calendar.DATE)+"";
+                String fileName = String.format(shappy+"-"+year+"-"+month+"-"+day+"-"+".jpg");
                 File outFile = new File(dir, fileName);
 
                 outStream = new FileOutputStream(outFile);
@@ -698,4 +750,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             }
         });
     }
+
+
+
+
+
 }

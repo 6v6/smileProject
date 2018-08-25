@@ -34,7 +34,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainActivity"
-            android:label="DAY"
+            android:label="SmileProject"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.FaceDetectGrayActivity"

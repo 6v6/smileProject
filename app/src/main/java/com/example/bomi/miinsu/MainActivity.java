@@ -1,6 +1,7 @@
 package com.example.bomi.miinsu;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,12 +39,15 @@ public class MainActivity extends AppCompatActivity
     private TextView userEmail;
     private TextView userName;
     private TextView day;
+    private TextView smtv;
+    private RatingBar rb;
 
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
     private DatabaseReference mPostReference = Database.getReference("users");
 
     String email;
     String ruser;
+    float happy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +56,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+        SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+        happy = pref.getFloat("happy",0);
+        Log.e("happy::",happy+"");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -94,6 +101,12 @@ public class MainActivity extends AppCompatActivity
             }
 
         });
+
+        rb = (RatingBar)findViewById(R.id.ratingBar);
+        smtv = (TextView)findViewById(R.id.mainSmile);
+
+        rb.setRating(happy*5);
+        smtv.setText((int)(happy*100)+"% 웃음으로 열었어요!");
     }
 
 

@@ -64,6 +64,7 @@ public class ImageUtils {
 
     //Rotate Bitmap
     public final static Bitmap rotate(Bitmap b, float degrees) {
+
         if (degrees != 0 && b != null) {
             Matrix m = new Matrix();
             m.setRotate(degrees, (float) b.getWidth() / 2,
