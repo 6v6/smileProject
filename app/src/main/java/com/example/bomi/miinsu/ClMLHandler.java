@@ -28,7 +28,7 @@ import java.util.Collections;
 
 public class ClMLHandler {
 
-    private static final String PROJECT_ID = "PROJECT_ID";
+    private static final String PROJECT_ID = "";
     private static final String MODEL_NAME = "emotiontrain";
     private Activity mCurrentActivity;
 

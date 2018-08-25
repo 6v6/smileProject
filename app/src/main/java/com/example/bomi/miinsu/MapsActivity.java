@@ -25,9 +25,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Geocoder geocoder;
     private Button button;
     private EditText editText;
-    String addr=null;
+    String addr;
     double longitude;
     double latitude;
+    Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         editText = (EditText)findViewById(R.id.editText);
         button = (Button)findViewById(R.id.button3);
+
+        intent = new Intent();
+        addr = "위치를 지정하세요";
+        intent.putExtra("place",addr);
+        setResult(RESULT_OK,intent);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -74,9 +80,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng duksung = new LatLng(37.65, 127.016);
+        mMap.addMarker(new MarkerOptions().position(duksung).title("Marker in duksung"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(duksung));
     }
 
     public void searchClick(View view) {
@@ -89,9 +95,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             addressList = geocoder.getFromLocationName(
                     str,
                     10);
-            latitude = addressList.get(0).getLatitude();
-            longitude = addressList.get(0).getLongitude();
-            addr = addressList.get(0).getAddressLine(0);
+            if(addressList != null) {
+                latitude = addressList.get(0).getLatitude();
+                longitude = addressList.get(0).getLongitude();
+                addr = addressList.get(0).getAddressLine(0);
+            }
         } catch (IOException e) {
             Toast.makeText(this, "없는 주소입니다.",Toast.LENGTH_LONG).show();
             e.printStackTrace();
@@ -115,10 +123,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void onSetClicked(View view) {
-        Intent intent = new Intent();
-        intent.putExtra("place",addr);
-        intent.putExtra("latitude",latitude); //위도
-        intent.putExtra("longitude",longitude); //경도
+        if(addr != null) {
+            intent.putExtra("place",addr);
+            intent.putExtra("latitude",latitude); //위도
+            intent.putExtra("longitude",longitude); //경도
+        }
         setResult(RESULT_OK,intent);
         finish();
     }

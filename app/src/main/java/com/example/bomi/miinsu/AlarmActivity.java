@@ -175,10 +175,12 @@ public class AlarmActivity extends AppCompatActivity {
                 editor.putString("latitude", Double.toString(latitude));
                 editor.putString("longitude", Double.toString(longitude));
                 editor.commit();
-                if (pref.getBoolean("pSwitch", false)) {
-                    service.putExtra("latitude",latitude);
-                    service.putExtra("longitude",longitude);
-                    startService(service);
+                if(latitude != 0.0) {
+                    if (pref.getBoolean("pSwitch", false)) {
+                        service.putExtra("latitude", latitude);
+                        service.putExtra("longitude", longitude);
+                        startService(service);
+                    }
                 }
             } else {
                 btn2.setText("위치를 지정하세요");
