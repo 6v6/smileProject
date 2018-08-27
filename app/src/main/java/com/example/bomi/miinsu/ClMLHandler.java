@@ -28,7 +28,7 @@ import java.util.Collections;
 
 public class ClMLHandler {
 
-    private static final String PROJECT_ID = "";
+    private static final String PROJECT_ID = "sublime-etching-210306";
     private static final String MODEL_NAME = "emotiontrain";
     private Activity mCurrentActivity;
 
