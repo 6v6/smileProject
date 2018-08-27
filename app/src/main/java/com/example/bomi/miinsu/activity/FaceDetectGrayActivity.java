@@ -5,10 +5,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -32,6 +36,7 @@ import android.widget.TextView;
 
 import com.example.bomi.miinsu.ClMLHandler;
 import com.example.bomi.miinsu.MainActivity;
+import com.example.bomi.miinsu.MissionList;
 import com.example.bomi.miinsu.activity.ui.FaceOverlayView;
 import com.example.bomi.miinsu.adapter.ImagePreviewAdapter;
 import com.example.bomi.miinsu.model.FaceResult;
@@ -40,6 +45,7 @@ import com.example.bomi.miinsu.R;
 import com.example.bomi.miinsu.utils.ImageUtils;
 import com.example.bomi.miinsu.utils.Util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -433,24 +439,35 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             int h = (int) (prevSettingWidth * aspect);
             int orientation = setCameraDisplayOrientation(FaceDetectGrayActivity.this,
                     CAMERA_FACING, mCamera);
-            ByteBuffer bbuffer = ByteBuffer.wrap(data);
-            bbuffer.get(grayBuff, 0, bufflen);
+
+            //ByteBuffer bbuffer = ByteBuffer.wrap(data);
+            //bbuffer.get(grayBuff, 0, bufflen);
 
             Bitmap bitmap = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.RGB_565);
             Bitmap bitmap2 = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.ARGB_4444);
+
+            //이미지 저장
+            YuvImage yuv = new YuvImage(data, ImageFormat.NV21,
+                    bitmap.getWidth(), bitmap.getHeight(), null);
+            Rect rectImage = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            if (!yuv.compressToJpeg(rectImage, 100, stream)) {
+                Log.e("CreateBitmap", "compressToJpeg failed");
+            }
+            //위에 내용 안쓰면'int android.graphics.Bitmap.getWidth()' on a null object reference 오류
+
+            BitmapFactory.Options bfo = new BitmapFactory.Options();
+            bfo.inPreferredConfig = Bitmap.Config.RGB_565;
+            bitmap = BitmapFactory.decodeStream(
+                    new ByteArrayInputStream(stream.toByteArray()), null, bfo);
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
 
-            //이미지를 디바이스 방향으로 회전
-      /*      Matrix matrix = new Matrix();
-            matrix.postRotate(orientation);
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);*/
 
             //bitmap을 byte array로 변환
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             final byte[] currentData = stream.toByteArray();
 
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
+            //gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
 
             //버튼눌러 값 전송
             button.setOnClickListener(new View.OnClickListener() {
@@ -557,7 +574,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             // Crop Face to display in RecylerView
                             //
                             if (count == 5) {
-                                faceCroped = ImageUtils.cropFace(faces[i], bitmap2, rotate);
+                                faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);

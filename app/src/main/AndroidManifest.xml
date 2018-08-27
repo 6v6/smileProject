@@ -37,7 +37,13 @@
             android:label="DAY"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".activity.FaceDetectGrayActivity"
+        android:name=".activity.FaceDetectGrayActivity"
+        android:screenOrientation="fullSensor" />
+        <activity
+        android:name=".activity.FaceDetectDiaryActivity"
+        android:screenOrientation="fullSensor" />
+        <activity
+            android:name=".activity.FaceDetectMissionActivity"
             android:screenOrientation="fullSensor" />
         <activity
             android:name=".MissionActivity"

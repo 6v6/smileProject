@@ -29,7 +29,7 @@ public class ImagePreview extends Activity implements View.OnClickListener {
 
         /** 완성된 이미지 보여주기  */
         BitmapFactory.Options bfo = new BitmapFactory.Options();
-        bfo.inSampleSize = 2;
+        bfo.inSampleSize = 4;
         ImageView iv = (ImageView)findViewById(R.id.imageView);
         Bitmap bm = BitmapFactory.decodeFile(imgPath, bfo);
         Bitmap resized = Bitmap.createScaledBitmap(bm, imgWidth, imgHeight, true);
@@ -43,11 +43,6 @@ public class ImagePreview extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch(v.getId()){
             case R.id.btn_back:
-
-                TextView aboutPhoto=(TextView)findViewById(R.id.aboutPhoto);
-                TextView photoText=(TextView)findViewById(R.id.photoText);
-
-                photoText.setText(aboutPhoto.getText().toString());
         }
     }
 }

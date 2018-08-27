@@ -19,6 +19,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.bomi.miinsu.activity.FaceDetectDiaryActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.example.bomi.miinsu.activity.FaceDetectGrayActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -119,7 +121,7 @@ public class MissionActivity extends AppCompatActivity
     }
 
     public void onMissonStart(View view) {
-        Intent intent = new Intent(getApplication(), FaceDetectGrayActivity.class);
+        Intent intent = new Intent(getApplication(),FaceDetectDiaryActivity.class);
         startActivity(intent);
     }
 }
