@@ -37,6 +37,8 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.common.internal.Constants;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -162,11 +164,14 @@ public class AlarmActivity extends AppCompatActivity {
                 editor.commit();
                 if (isChecked) { // On이면 setAlarm
                     flag = 0;
-                    setRunnable();
+                    //setRunnable();
+                    FirebaseMessaging.getInstance().subscribeToTopic("news");
+                    FirebaseInstanceId.getInstance().getToken();
+                    Log.d("getToken",FirebaseInstanceId.getInstance().getToken());
                 } else {  //Off이면 cancelAlarm
                     Toast.makeText(getApplicationContext(),"꺼짐",Toast.LENGTH_SHORT).show();
-                    handler.removeCallbacksAndMessages(null);
-                    interv = 0;
+                    //handler.removeCallbacksAndMessages(null);
+                    //interv = 0;
                 }
             }
         });
@@ -315,10 +320,10 @@ public class AlarmActivity extends AppCompatActivity {
         }
     }
 
-    public void onQuestionClicked(View view) {
-        AlarmDialog dialog = new AlarmDialog(this);
-        dialog.show();
-    }
+//    public void onQuestionClicked(View view) {
+//        AlarmDialog dialog = new AlarmDialog(this);
+//        dialog.show();
+//    }
 
     public int getRandomTime(int curHour) {  //알람 울릴 시간(Hour) 반환
         ///////////random이 24시간보다 작아야 함.

@@ -1,0 +1,71 @@
+{
+  "project_info": {
+    "project_number": "858137562263",
+    "firebase_url": "https://smileproject-10dcc.firebaseio.com",
+    "project_id": "smileproject-10dcc",
+    "storage_bucket": "smileproject-10dcc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858137562263:android:8106429564ea9fe0",
+        "android_client_info": {
+          "package_name": "com.example.bomi.miinsu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "858137562263-lg8ce399996mogpmars6faanaul5t4pr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bomi.miinsu",
+            "certificate_hash": "7324ef2ac31148d977541a7d1c1c376feddc67d6"
+          }
+        },
+        {
+          "client_id": "858137562263-ljhsr733p1um6mu64mdjjtn3v25mr2bg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bomi.miinsu",
+            "certificate_hash": "032522624e3cfd275d0582b9ac598ad9f246f159"
+          }
+        },
+        {
+          "client_id": "858137562263-5uq2u43ogsi11mau6sh03u9k17424751.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bomi.miinsu",
+            "certificate_hash": "5fe07edcbacd62051e13f3fcd3b3ea144c79458a"
+          }
+        },
+        {
+          "client_id": "858137562263-o2aq54b90f91ou5tcmpqmhuhj6130u27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVaw8Iog9BW8slUGDVZSMnrn_pMBQ4eVI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858137562263-o2aq54b90f91ou5tcmpqmhuhj6130u27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
