@@ -64,6 +64,7 @@ public class emotionDiary extends AppCompatActivity {
 }
 
 class emotionAdapter extends BaseAdapter {
+    private String imageName;
     private String imgData;
     private String geoData;
     private ArrayList<String> thumbsDataList;
@@ -109,7 +110,9 @@ class emotionAdapter extends BaseAdapter {
 
         ExifInterface exif;
 
-        String day;
+        String emotion = "";
+        String day = "";
+
         Date beforeDate;
         String newDate=null;
         SingerItemView view = new SingerItemView(mContext);
@@ -131,7 +134,7 @@ class emotionAdapter extends BaseAdapter {
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
 
-        try {
+       /* try {
             exif = new ExifInterface(imgPath);
             day=getTagString(ExifInterface.TAG_DATETIME, exif);
             //원하는 날짜형식으로 변환하기
@@ -150,11 +153,13 @@ class emotionAdapter extends BaseAdapter {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        String subDate=newDate.substring(2,10);
-
-        view.setDate(subDate+"|감정");
+        }*/
+        //imageName = getImageName(imgData, geoData, thumbsIDList.get(position));
+        //emotion = imageName.substring(0, imageName.indexOf("-"));
+        Log.d("imgPath:",imgPath);
+        emotion = imgPath.substring(33, imgPath.indexOf("-"));
+        day = imgPath.substring(imgPath.indexOf("-") + 1, imgPath.indexOf(".") - 1);
+        view.setDate(day+"|감정|"+emotion);
         view.setImage(bitmap);
         return view;
     }
@@ -172,7 +177,7 @@ class emotionAdapter extends BaseAdapter {
         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,
                 MediaStore.Images.Media.DATA + " like ? ",
-                new String[] {"%Foodie%"},
+                new String[] {"%emotionDiary%"},
                 null);
 
         //Log.d("Images:",MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString());

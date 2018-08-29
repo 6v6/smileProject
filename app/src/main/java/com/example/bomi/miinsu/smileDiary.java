@@ -127,15 +127,16 @@ class smileAdapter extends BaseAdapter {
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
 
-        imageName = getImageName(imgData, geoData, thumbsIDList.get(position));
-        happy = imageName.substring(0, imageName.indexOf("-"));
-        day = imageName.substring(imageName.indexOf("-") + 1, imageName.indexOf(".") - 1);
+        Log.d("imgPath:",imgPath);
+
+        //imageName = getImageName(imgData, geoData, thumbsIDList.get(position));
+
+        happy = imgPath.substring(31, imgPath.indexOf("-"));
+        Log.d("imgPath:",happy);
+        day = imgPath.substring(imgPath.indexOf("-") + 1, imgPath.indexOf(".") - 1);
         Log.d("beforedate:", "|" + day + "|");
 
-
-        // String subDate=newDate.substring(2,10);
-
-        view.setDate(day + "|웃음 " + happy + "%");
+        view.setDate(day + "|웃음| " + happy + "%");
         view.setImage(bitmap);
         return view;
     }
@@ -207,7 +208,7 @@ class smileAdapter extends BaseAdapter {
         return imageDataPath;
     }
 
-    private String getImageName(String ImageData, String Location, String thumbID){
+    /*private String getImageName(String ImageData, String Location, String thumbID){
         String imageName = null;
         String[] proj = {MediaStore.Images.Media._ID,
                 MediaStore.Images.Media.DATA,
@@ -224,7 +225,7 @@ class smileAdapter extends BaseAdapter {
         }
         imageCursor.close();
         return imageName;
-    }
+    }*/
 
 }
 

@@ -586,10 +586,11 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             if (count == 5) {
                                 faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
-                                    SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+                                    SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
                                     SharedPreferences.Editor editor = pref.edit();
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
+
                                     if(Double.parseDouble(happy)>0.1) {
                                         if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) != calendar.get(Calendar.DAY_OF_MONTH)) {
                                             //사진저장
@@ -630,7 +631,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             });
         }
 
-        private void gray8toRGB32(byte[] gray8, int width, int height, int[] rgb_32s) {
+       /* private void gray8toRGB32(byte[] gray8, int width, int height, int[] rgb_32s) {
             final int endPtr = width * height;
             int ptr = 0;
             while (true) {
@@ -641,7 +642,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 rgb_32s[ptr] = 0xff000000 + (Y << 16) + (Y << 8) + Y;
                 ptr++;
             }
-        }
+        }*/
     }
 
     /**

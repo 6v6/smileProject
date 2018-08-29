@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -58,6 +59,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -124,6 +126,11 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
     private TextView smileTv;
 
     private Button button;
+
+    Calendar calendar = Calendar.getInstance();
+    int month, day;
+    private String value;
+    private Double emotionValue;
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -166,7 +173,7 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("웃음확인");
+        getSupportActionBar().setTitle("오늘의감정");
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
@@ -475,7 +482,6 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new SaveImageTask().execute(currentData);
                     Intent intent = new Intent(getApplicationContext(), MissionList.class);
                     startActivity(intent);
                     finish();
@@ -579,10 +585,12 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
                                 faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
                                     emotion = clml.sendRequestToCMLE(faceCroped);
-
                                     emotion = emotion.substring(emotion.indexOf(":") + 2, emotion.indexOf("]") - 1);
+
                                     Log.e("response2:", emotion);
 
+                                    SharedPreferences pref = getSharedPreferences("FaceDetectDiary", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = pref.edit();
                                     String[] emotion_array = new String[5];
                                     emotion_array = emotion.split(",");
 
@@ -592,21 +600,27 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
                                     myEmotion.put(Double.parseDouble(emotion_array[3]), "sadness");
                                     myEmotion.put(Double.parseDouble(emotion_array[4]), "surprise");
 
-
                                     double max = Double.parseDouble(emotion_array[0]);
                                     for (int a = 0; a < emotion_array.length; a++) {
                                         if (Double.parseDouble(emotion_array[a]) > max) {
                                             max = Double.parseDouble(emotion_array[a]);
                                         }
-
-
                                     }
+                                    //value감정값
+                                    value = myEmotion.get(max);
 
-                                    String value = myEmotion.get(max);
-                                    Log.e("response2val", value);
                                     //잠금해제
                                     if (emotion != null) {
-                                        //generatNotification();
+                                        if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) != calendar.get(Calendar.DAY_OF_MONTH)) {
+                                        //사진저장
+                                        new SaveImageTask().execute(currentData);
+                                        //지금 날짜 저장
+                                        editor.putInt("preday", calendar.get(Calendar.DAY_OF_MONTH));
+                                    }
+                                        editor.putString("emotion", value);
+                                        editor.commit();
+                                        Log.e("response2val", value);
+                                       //상단바 알림
                                         generatNotification(value);
                                         Intent intent = new Intent(getApplicationContext(), MissionList.class);
                                         startActivity(intent);
@@ -662,11 +676,15 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
             // Write to SD Card
             try {
                 File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File(sdCard.getAbsolutePath() + "/Testtest");
+                File dir = new File (sdCard.getAbsolutePath() + "/emotionDiary");
                 dir.mkdirs();
 
                 //fileName : 측정 값
-                String fileName = String.format("%d.jpg", System.currentTimeMillis());
+                String shappy = value+"";
+                String year = calendar.get(Calendar.YEAR)+"";
+                String month = calendar.get(Calendar.MONTH)+1+"";
+                String day = calendar.get(Calendar.DATE)+"";
+                String fileName = String.format(shappy+"-"+year+"-"+month+"-"+day+"-"+".jpg");
                 File outFile = new File(dir, fileName);
 
                 outStream = new FileOutputStream(outFile);
@@ -686,9 +704,8 @@ public final class FaceDetectDiaryActivity extends AppCompatActivity implements 
             }
             return null;
         }
-
         private void refreshGallery(File file) {
-            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Intent mediaScanIntent = new Intent( Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             mediaScanIntent.setData(Uri.fromFile(file));
             sendBroadcast(mediaScanIntent);
         }

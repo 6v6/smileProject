@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
         happy = pref.getFloat("happy",0);
         Log.e("happy::",happy+"");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
