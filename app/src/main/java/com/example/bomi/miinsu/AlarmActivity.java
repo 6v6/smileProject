@@ -3,6 +3,9 @@ package com.example.bomi.miinsu;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -15,27 +18,40 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Build;
+import android.os.Handler;
+import android.provider.ContactsContract;
+import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.common.internal.Constants;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Random;
 
 public class AlarmActivity extends AppCompatActivity {
     Button btn1;
     Button btn2;
+    ImageButton question;
     TimePickerDialog dialog;
     Switch tSwitch;
     Switch pSwitch;
+    Switch rSwitch;
     SharedPreferences pref;
     SharedPreferences.Editor editor;
     AlarmManager alarmM;
@@ -48,7 +64,14 @@ public class AlarmActivity extends AppCompatActivity {
     private boolean isAccessCoarseLocation = false;
     private boolean isPermission = false;
     Intent service;
+    NotificationManager notificationManager;
+    NotificationCompat.Builder builder;
+    Handler handler;
+    long interv;  //다시 runnable할 간격
+    int flag;
+    Runnable r;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,14 +82,19 @@ public class AlarmActivity extends AppCompatActivity {
 
         service = new Intent(getApplicationContext(),GpsService.class);
         callPermission();  // 권한 요청을 해야 함
+        notificationManager = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
+        handler = new Handler();
+        interv = 0;
 
         btn1 = (Button) findViewById(R.id.button4);
         btn2 = (Button) findViewById(R.id.button3);
         tSwitch = (Switch) findViewById(R.id.switch1);
         pSwitch = (Switch) findViewById(R.id.switch2);
+        rSwitch = (Switch) findViewById(R.id.switch3);
 
         tSwitch.setChecked(pref.getBoolean("tSwitch", false));
         pSwitch.setChecked(pref.getBoolean("pSwitch", false));
+        rSwitch.setChecked(pref.getBoolean("rSwitch",false));
 
         String setPlace = pref.getString("setPlace", null);
         if (setPlace != null) {
@@ -125,6 +153,25 @@ public class AlarmActivity extends AppCompatActivity {
                     }
                 } else {
                     stopService(service);
+                }
+            }
+        });
+        //랜덤 알람 스위치 이벤트
+        rSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                editor.putBoolean("rSwitch", isChecked); //true이면 On, false이면 off
+                editor.commit();
+                if (isChecked) { // On이면 setAlarm
+                    flag = 0;
+                    //setRunnable();
+                    FirebaseMessaging.getInstance().subscribeToTopic("news");
+                    FirebaseInstanceId.getInstance().getToken();
+                    Log.d("getToken",FirebaseInstanceId.getInstance().getToken());
+                } else {  //Off이면 cancelAlarm
+                    Toast.makeText(getApplicationContext(),"꺼짐",Toast.LENGTH_SHORT).show();
+                    //handler.removeCallbacksAndMessages(null);
+                    //interv = 0;
                 }
             }
         });
@@ -192,10 +239,10 @@ public class AlarmActivity extends AppCompatActivity {
     private void setAlarm() {
         Intent intent = new Intent(this, AlarmViewActivity.class);
         pending = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Calendar triggerTime;
-        long intervalTime = 24 * 60 * 60 * 1000; //24시간
-        triggerTime = setTriggerTime();
-        alarmM.setRepeating(AlarmManager.RTC_WAKEUP, triggerTime.getTimeInMillis(), intervalTime, pending);
+            Calendar triggerTime;
+            long intervalTime = 24 * 60 * 60 * 1000; //24시간
+            triggerTime = setTriggerTime();
+            alarmM.setRepeating(AlarmManager.RTC_WAKEUP, triggerTime.getTimeInMillis(), intervalTime, pending);
     }
 
     //알람 설정 시간 계산
@@ -271,5 +318,84 @@ public class AlarmActivity extends AppCompatActivity {
         } else {
             isPermission = true;
         }
+    }
+
+//    public void onQuestionClicked(View view) {
+//        AlarmDialog dialog = new AlarmDialog(this);
+//        dialog.show();
+//    }
+
+    public int getRandomTime(int curHour) {  //알람 울릴 시간(Hour) 반환
+        ///////////random이 24시간보다 작아야 함.
+        ///////////알람 울릴 시간이 10~22 사이여야함
+        Random random = new Random();
+        int randtime = random.nextInt(23)+1;  //1~23
+        int resulttime = randtime + curHour;
+        if(resulttime < 24) {
+            if(resulttime<10 || resulttime>=22) {  //10시 이전, 22시 이후이면
+                return getRandomTime(curHour);  //다시 random
+            } else {
+                interv = randtime*60*60*1000;  //interval 설정
+                return resulttime;
+            }
+        } else {
+            if(resulttime<34 || resulttime>=46) {
+                return getRandomTime(curHour);
+            } else {
+                interv = randtime*60*60*1000;
+                return  resulttime-24;
+            }
+        }
+    }
+
+    public void setPushAlarm() {
+        Calendar curtime = Calendar.getInstance(); //알람 지정했을 때의 시각
+        Calendar setTime = curtime; //랜덤 시각(알람이 울릴 시각)
+        Log.d("Curtime", "curHour" + curtime.get(Calendar.HOUR_OF_DAY));
+        int setHour = getRandomTime(curtime.get(Calendar.HOUR_OF_DAY)); //알람 울릴 랜덤 hour
+        if (setHour < curtime.get(Calendar.HOUR_OF_DAY)) {  //setHour가 현재시간보다 이른 시간이면 내일 알람
+            setTime.set(Calendar.DAY_OF_YEAR, setTime.get(Calendar.DAY_OF_YEAR) + 1);
+        }
+        setTime.set(Calendar.HOUR_OF_DAY, setHour);  //setHour의 hour 랜덤hour로 지정
+        //Log.d("SetRandomAlarm", "setHour" + setTime.get(Calendar.HOUR_OF_DAY));
+        SimpleDateFormat form = new SimpleDateFormat("MM-dd HH:mm:ss");
+        Log.d("랜덤알람 울릴시간",form.format(setTime.getTime()));
+        Log.d("interv",interv/1000/60/60+"시간");
+//        curtime.set(Calendar.SECOND,setHour+curtime.get(Calendar.SECOND));
+        if(flag != 0)
+            pushAlarm(setTime);
+        flag++;
+    }
+
+    public void setRunnable() {
+        handler = new Handler();
+        r = new Runnable(){
+            @Override
+            public void run() {
+                setPushAlarm();
+                setRunnable();
+            }
+        };
+        handler.postDelayed(r,
+                interv
+        );
+    }
+
+    public void pushAlarm(Calendar setTime) {
+        String channelId = "channel";
+        String channelName = "Channel Name";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(channelId, channelName, importance);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+        builder = new NotificationCompat.Builder(this, channelId);
+        Intent intent = new Intent(this, AlarmViewActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent p = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setWhen(setTime.getTimeInMillis()).setContentTitle("SmileProject")
+                .setContentText("웃을 시간이에요!").setContentIntent(p)
+                .setAutoCancel(true).setSmallIcon(R.drawable.sun_smile);
+        notificationManager.notify(0, builder.build());
     }
 }

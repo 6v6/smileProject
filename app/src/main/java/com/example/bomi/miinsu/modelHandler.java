@@ -26,13 +26,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
-public class ClMLHandler {
+public class modelHandler {
 
     private static final String PROJECT_ID = "sublime-etching-210306";
-    private static final String MODEL_NAME = "emotiontrain";
+    private static final String MODEL_NAME = "emotion_5";
+    //private static final String MODEL_VER = "v2";
     private Activity mCurrentActivity;
 
-    public ClMLHandler(Activity activity) {
+    public modelHandler(Activity activity) {
         mCurrentActivity = activity;
         getCMLECredentials();
         setupCMLERequest();

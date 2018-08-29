@@ -1,14 +1,14 @@
 package com.example.bomi.miinsu.activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -18,8 +18,11 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -36,7 +39,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.bomi.miinsu.ClMLHandler;
-import com.example.bomi.miinsu.MainActivity;
 import com.example.bomi.miinsu.MissionList;
 import com.example.bomi.miinsu.activity.ui.FaceOverlayView;
 import com.example.bomi.miinsu.adapter.ImagePreviewAdapter;
@@ -45,6 +47,13 @@ import com.example.bomi.miinsu.utils.CameraErrorCallback;
 import com.example.bomi.miinsu.R;
 import com.example.bomi.miinsu.utils.ImageUtils;
 import com.example.bomi.miinsu.utils.Util;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -52,13 +61,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-public final class FaceDetectGrayActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public final class FaceDetectMissionActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     // Number of Cameras in device.
     private int numberOfCameras;
@@ -105,6 +112,16 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
     private String BUNDLE_CAMERA_ID = "camera";
 
+    //미션 확인 및 일차바꾸기
+    private static int MISSION_PASS = 1;
+    private int smileCount=0;
+    private FirebaseDatabase Database = FirebaseDatabase.getInstance();
+    private DatabaseReference myRef = Database.getReference();
+    private DatabaseReference userdb = Database.getReference("users");
+    private FirebaseAuth mAuth;
+    String email, ruser;
+    String day;
+
 
     //RecylerView face image
     private HashMap<Integer, Integer> facesCount = new HashMap<>();
@@ -112,12 +129,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private ArrayList<Bitmap> facesBitmap;
 
     private  ClMLHandler clml;
-    private String  happy ="";
+    private String  happy;
     private TextView smileTv;
-    Calendar calendar = Calendar.getInstance();
-    int month, day;
     private Button button;
-
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -139,7 +153,15 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         StrictMode.setThreadPolicy(policy);
 
         clml = new ClMLHandler(this);
+
+        //미션 횟수 보여주기
+        Intent mission = getIntent();
+        Bundle extras = mission.getExtras();
+        String total = extras.getString("Mission");
+
         smileTv = (TextView)findViewById(R.id.smileText);
+        smileTv.setText(smileCount+"/"+total.substring(0,2));
+
         mView = (SurfaceView) findViewById(R.id.surfaceview);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -163,9 +185,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
-
-
-
     }
 
 
@@ -311,7 +330,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
     private void setDisplayOrientation() {
         // Now set the display orientation:
-        mDisplayRotation = Util.getDisplayRotation(FaceDetectGrayActivity.this);
+        mDisplayRotation = Util.getDisplayRotation(FaceDetectMissionActivity.this);
         mDisplayOrientation = Util.getDisplayOrientation(mDisplayRotation, cameraId);
 
         mCamera.setDisplayOrientation(mDisplayOrientation);
@@ -444,7 +463,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             float aspect = (float) previewHeight / (float) previewWidth;
             int w = prevSettingWidth;
             int h = (int) (prevSettingWidth * aspect);
-            int orientation = setCameraDisplayOrientation(FaceDetectGrayActivity.this,
+            int orientation = setCameraDisplayOrientation(FaceDetectMissionActivity.this,
                     CAMERA_FACING, mCamera);
 
             //ByteBuffer bbuffer = ByteBuffer.wrap(data);
@@ -481,14 +500,11 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 @Override
                 public void onClick(View v) {
                     new SaveImageTask().execute(currentData);
-                    Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+                    Intent intent=new Intent(getApplicationContext(),MissionList.class);
                     startActivity(intent);
                     finish();
                 }
             });
-
-
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
 
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
@@ -502,7 +518,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 } else
                     rotate = rotate + 180;
             }
-
 
             switch (rotate) {
                 case 90:
@@ -520,8 +535,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     break;
             }
 
-
-
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
             fdet.findFaces(bmp, fullResults);
@@ -536,7 +549,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     mid.y *= yScale;
 
                     float eyesDis = fullResults[i].eyesDistance() * xScale;
-                  //  float confidence = fullResults[i].confidence();
+                    //  float confidence = fullResults[i].confidence();
                     float pose = fullResults[i].pose(android.media.FaceDetector.Face.EULER_Y);
                     int idFace = Id;
                     Rect rect = new Rect(
@@ -589,51 +602,56 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             if (count == 5) {
                                 faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
-                                    SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = pref.edit();
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
-                                    if(Double.parseDouble(happy)>0.1) {
-                                        if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) == calendar.get(Calendar.DAY_OF_MONTH)) {
-                                            //사진회전
-                                            //Bitmap rbitmap= ImageUtils.rotate(bitmap,rotate);
-                                            //이미지 저장
-                                            YuvImage yuv = new YuvImage(data, ImageFormat.NV21,
-                                                    bitmap.getWidth(), bitmap.getHeight(), null);
-                                            Rect rectImage = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-                                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                                            if (!yuv.compressToJpeg(rectImage, 100, stream)) {
-                                                Log.e("CreateBitmap", "compressToJpeg failed");
-                                            }
-                                            //위에 내용 안쓰면'int android.graphics.Bitmap.getWidth()' on a null object reference 오류
-                                            BitmapFactory.Options bfo = new BitmapFactory.Options();
-                                            bfo.inPreferredConfig = Bitmap.Config.RGB_565;
-                                            bitmap = BitmapFactory.decodeStream(
-                                                    new ByteArrayInputStream(stream.toByteArray()), null, bfo);
-                                            Bitmap bmp2 = Bitmap.createScaledBitmap(bitmap, w, h, false);
-                                            bmp2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                            final byte[] currentData = stream.toByteArray();
+                                    Log.e("response::",happy);
 
-                                            //bitmap을 byte array로 변환
-                                            //rbitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                           // final byte[] currentData = stream.toByteArray();
-                                            //사진저장
-                                            new SaveImageTaskS().execute(currentData);
-                                            //지금 날짜 저장
-                                            editor.putInt("preday", calendar.get(Calendar.DAY_OF_MONTH));
+                                    final Handler handler = new Handler(Looper.getMainLooper());
+
+                                    Intent mission = getIntent();
+                                    Bundle extras = mission.getExtras();
+                                    String clickMission = extras.getString("Mission");
+                                    final String total = clickMission.substring(0, 2);
+                                    final int[] time = {0};
+                                    //Integer.parseInt(total)/10
+
+                                    /*//초 미션
+                                    if(clickMission.contains("초")){
+                                       handler.post(new Runnable() {
+                                           @Override
+                                           public void run() {
+                                               new CountDownTimer(10 * 1000, 1000) {
+                                                   @Override
+                                                   public void onTick(long millisUntilFinished) {
+                                                       time[0]++;
+                                                       smileTv.setText(time[0] +"/"+ total);
+                                                   }
+
+                                                   @Override
+                                                   public void onFinish() {
+
+                                                   }
+                                               }.start();
+                                           }
+                                       });
+
+                                        if(Double.parseDouble(happy)>0.3){
+                                            onNextDay();
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    showDialog("통과하셨습니다!");
+                                                }
+                                            });
                                         }
-                                        //해피 값 저장
-                                        Log.e("responsehappy::",happy);
-                                        editor.putFloat("happy", Float.parseFloat(happy));
-                                        editor.commit();
-                                        //잠금해제
-                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                        startActivity(intent);
-                                        finish();
+
+                                    }*/
+
+                                    //횟수 미션
+                                    if(Double.parseDouble(happy)>0&&MISSION_PASS!=101) {
+                                        numberMission();
                                     }
-                                    else{
-                                        setText(smileTv,(int)(Double.parseDouble(happy)*100)+"%\n활짝 웃어보세요!");
-                                    }
+
                                     handler.post(new Runnable() {
                                         public void run() {
                                             imagePreviewAdapter.add(faceCroped);
@@ -654,18 +672,74 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 }
             });
         }
+        //날짜 바꾸기
+        private void onNextDay(){
+            //레퍼런스 정보 가져오기
+            //db에서 users읽기
+            mAuth=FirebaseAuth.getInstance();
+            FirebaseUser user = mAuth.getCurrentUser();
+            email = user.getEmail();
+            //내 이메일
+            ruser = email.substring(0,email.indexOf("."));
+            userdb.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    day = dataSnapshot.child(ruser).child("challenge").getValue(String.class);
 
-        private void gray8toRGB32(byte[] gray8, int width, int height, int[] rgb_32s) {
-            final int endPtr = width * height;
-            int ptr = 0;
-            while (true) {
-                if (ptr == endPtr)
-                    break;
+                    int newDay=Integer.parseInt(day);
+                    newDay++;
+                    myRef.child("users").child(ruser).child("challenge").setValue(String.valueOf(newDay));
+                }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-                final int Y = gray8[ptr] & 0xff;
-                rgb_32s[ptr] = 0xff000000 + (Y << 16) + (Y << 8) + Y;
-                ptr++;
+                }
+            });
+        }
+        //횟수 미션
+        private void numberMission(){
+
+            Intent mission = getIntent();
+            Bundle extras = mission.getExtras();
+            String clickMission = extras.getString("Mission");
+            String total=clickMission.substring(0,1);
+
+            smileCount++;
+            if(smileCount==Integer.parseInt(total))
+            {
+                setText(smileTv,smileCount+"/"+total);
+                onNextDay();
+                MISSION_PASS=101;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showDialog("통과하셨습니다!");
+
+                    }
+                });
             }
+
+            else{
+                setText(smileTv,smileCount+"/"+total);
+            }
+        }
+
+
+        private void showDialog(String msg) {
+
+            android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(FaceDetectMissionActivity.this);
+            builder.setTitle("알림");
+            builder.setMessage(msg);
+            builder.setCancelable(true);
+            builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    MISSION_PASS=1;
+                    Intent intent=new Intent(getApplicationContext(),MissionList.class);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+            builder.create().show();
         }
     }
 
@@ -675,7 +749,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private void resetData() {
         if (imagePreviewAdapter == null) {
             facesBitmap = new ArrayList<>();
-            imagePreviewAdapter = new ImagePreviewAdapter(FaceDetectGrayActivity.this, facesBitmap, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
+            imagePreviewAdapter = new ImagePreviewAdapter(FaceDetectMissionActivity.this, facesBitmap, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
                 @Override
                 public void onClick(View v, int position) {
                     imagePreviewAdapter.setCheck(position);
@@ -694,18 +768,14 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         protected Void doInBackground(byte[]... data) {
             FileOutputStream outStream = null;
 
-        // Write to SD Card
+            // Write to SD Card
             try {
                 File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File (sdCard.getAbsolutePath() + "/smileDiary");
+                File dir = new File (sdCard.getAbsolutePath() + "/Testtest");
                 dir.mkdirs();
 
                 //fileName : 측정 값
-                String shappy = (int)(Double.parseDouble(happy)*100)+"";
-                String year = calendar.get(Calendar.YEAR)+"";
-                String month = calendar.get(Calendar.MONTH)+1+"";
-                String day = calendar.get(Calendar.DATE)+"";
-                String fileName = String.format(shappy+"-"+year+"-"+month+"-"+day+"-"+".jpg");
+                String fileName = String.format("%d.jpg", System.currentTimeMillis());
                 File outFile = new File(dir, fileName);
 
                 outStream = new FileOutputStream(outFile);
