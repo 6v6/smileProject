@@ -480,15 +480,12 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new SaveImageTask().execute(currentData);
                     Intent intent=new Intent(getApplicationContext(),MainActivity.class);
                     startActivity(intent);
                     finish();
                 }
             });
 
-
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
 
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
@@ -594,31 +591,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
                                     if(Double.parseDouble(happy)>0.1) {
-                                        if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) == calendar.get(Calendar.DAY_OF_MONTH)) {
-                                            //사진회전
-                                            //Bitmap rbitmap= ImageUtils.rotate(bitmap,rotate);
-                                            //이미지 저장
-                                            YuvImage yuv = new YuvImage(data, ImageFormat.NV21,
-                                                    bitmap.getWidth(), bitmap.getHeight(), null);
-                                            Rect rectImage = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-                                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                                            if (!yuv.compressToJpeg(rectImage, 100, stream)) {
-                                                Log.e("CreateBitmap", "compressToJpeg failed");
-                                            }
-                                            //위에 내용 안쓰면'int android.graphics.Bitmap.getWidth()' on a null object reference 오류
-                                            BitmapFactory.Options bfo = new BitmapFactory.Options();
-                                            bfo.inPreferredConfig = Bitmap.Config.RGB_565;
-                                            bitmap = BitmapFactory.decodeStream(
-                                                    new ByteArrayInputStream(stream.toByteArray()), null, bfo);
-                                            Bitmap bmp2 = Bitmap.createScaledBitmap(bitmap, w, h, false);
-                                            bmp2.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                            final byte[] currentData = stream.toByteArray();
-
-                                            //bitmap을 byte array로 변환
-                                            //rbitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                           // final byte[] currentData = stream.toByteArray();
+                                        if(pref.getInt("preday",Calendar.DAY_OF_MONTH-1) != calendar.get(Calendar.DAY_OF_MONTH)) {
                                             //사진저장
-                                            new SaveImageTaskS().execute(currentData);
+                                            new SaveImageTask().execute(currentData);
                                             //지금 날짜 저장
                                             editor.putInt("preday", calendar.get(Calendar.DAY_OF_MONTH));
                                         }

@@ -61,6 +61,7 @@ public class smileDiary extends AppCompatActivity {
 class smileAdapter extends BaseAdapter {
     private String imgData;
     private String geoData;
+    private String imageName;
     private ArrayList<String> thumbsDataList;
     private ArrayList<String> thumbsIDList;
     private ArrayList<singerItem> items = new ArrayList<singerItem>();
@@ -103,9 +104,11 @@ class smileAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         ExifInterface exif;
-        String day;
+
+        String happy = "";
+        String day = "";
         Date beforeDate;
-        String newDate=null;
+        String newDate = null;
 
         SingerItemView view = new SingerItemView(mContext);
 
@@ -124,30 +127,15 @@ class smileAdapter extends BaseAdapter {
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
 
-        try {
-            exif = new ExifInterface(imgPath);
-            day=getTagString(ExifInterface.TAG_DATETIME, exif);
-            //원하는 날짜형식으로 변환하기
-            try {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy:MM:dd hh:mm:ss");
-                beforeDate=format.parse(day);
-                Log.d("beforedate:", "|" + beforeDate + "|");
+        imageName = getImageName(imgData, geoData, thumbsIDList.get(position));
+        happy = imageName.substring(0, imageName.indexOf("-"));
+        day = imageName.substring(imageName.indexOf("-") + 1, imageName.indexOf(".") - 1);
+        Log.d("beforedate:", "|" + day + "|");
 
-                SimpleDateFormat newFormat = new SimpleDateFormat("yyyy-MM-dd");
-                newDate=newFormat.format(beforeDate);
-                Log.d("newdate:", "|" + newDate + "|");
 
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+        // String subDate=newDate.substring(2,10);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String subDate=newDate.substring(2,10);
-
-        view.setDate(subDate+"|웃음%");
+        view.setDate(day + "|웃음 " + happy + "%");
         view.setImage(bitmap);
         return view;
     }
@@ -165,7 +153,7 @@ class smileAdapter extends BaseAdapter {
         Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query( MediaStore.Files.getContentUri("external"),
                 null,
                 MediaStore.Images.Media.DATA + " like ? ",
-                new String[] {"%Foodie%"},
+                new String[] {"%smileDiary%"},
                 null);
 
         //Log.d("Images:",MediaStore.Images.Media.EXTERNAL_CONTENT_URI.toString());
@@ -217,6 +205,25 @@ class smileAdapter extends BaseAdapter {
         }
         imageCursor.close();
         return imageDataPath;
+    }
+
+    private String getImageName(String ImageData, String Location, String thumbID){
+        String imageName = null;
+        String[] proj = {MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.DISPLAY_NAME,
+                MediaStore.Images.Media.SIZE};
+        Cursor imageCursor = mContext.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                proj, "_ID='"+ thumbID +"'", null, null);
+
+        if (imageCursor != null && imageCursor.moveToFirst()){
+            if (imageCursor.getCount() > 0){
+                int imgData = imageCursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
+                imageName = imageCursor.getString(imgData);
+            }
+        }
+        imageCursor.close();
+        return imageName;
     }
 
 }
