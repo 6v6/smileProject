@@ -25,24 +25,24 @@ public class PixelStyleJSON {
     private static final String STYLE_ENCODE = "b64";
     private static final String STYLE_IMAGE_BYTES = "image";
 
-    ArrayList<HashMap<String, Object>> pixelStyleMapList;
-    HashMap<String, Object> pixelStyleMap;
+    ArrayList<HashMap<String, Object>> imageMapList;
+    HashMap<String, Object> imageMap;
 
     public PixelStyleJSON() {
-        pixelStyleMapList = new ArrayList<>();
-        pixelStyleMap = new HashMap<>();
+        imageMapList = new ArrayList<>();
+        imageMap = new HashMap<>();
     }
 
     protected void setImageBytesAndWeights(String bytes) {
         HashMap<String, String> encodedContent = new HashMap<>();
-        encodedContent.put(STYLE_ENCODE, bytes);
-        pixelStyleMap.put(STYLE_IMAGE_BYTES, encodedContent);
-        pixelStyleMapList.add(pixelStyleMap);
+        encodedContent.put("b64", bytes);
+        imageMap.put("image", encodedContent);
+        imageMapList.add(imageMap);
     }
 
     protected Object objectifyImageStylePixels() {
-        pixelStyleMapList.add(pixelStyleMap);
+        imageMapList.add(imageMap);
         Gson gson = new Gson();
-        return gson.fromJson(gson.toJson(pixelStyleMapList), Object.class);
+        return gson.fromJson(gson.toJson(imageMapList), Object.class);
     }
 }

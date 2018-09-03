@@ -54,37 +54,34 @@ public class ClMLHandler {
 
 
 
-    // credentials related to service account
     private GoogleCredential mCredentials = null;
 
-    // CMLE instance for making request
+
     private CloudMachineLearningEngine mCloudMachineLearningEngine;
 
-    // JSON request for prediction
+
     private GoogleCloudMlV1PredictRequest mRequestJson;
 
-    // project path string related to project id and model name
+
     private String mProjectPath;
 
 
 
 
 
-    // authenticate the service account associated with the CMLE project/model
+    //
     public void getCMLECredentials() {
-        Log.d(TAG, "getCMLECredentials");
-        // get application default credentials from service account json
         InputStream jsonCredentials = mCurrentActivity.getResources().openRawResource(R.raw.myproject9a745a65a876);
         try {
             mCredentials = GoogleCredential.fromStream(jsonCredentials).createScoped(
                     Collections.singleton(CloudMachineLearningEngineScopes.CLOUD_PLATFORM));
         } catch (IOException e) {
-            Log.d(TAG, "You need to create service account and associated private key");
+            Log.d(TAG, "You need to create service account");
         } finally {
             try {
                 jsonCredentials.close();
             } catch (IOException e) {
-                Log.e(TAG, "Error closing input stream", e);
+                Log.e(TAG, "Error", e);
             }
         }
     }
