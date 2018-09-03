@@ -117,6 +117,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     Calendar calendar = Calendar.getInstance();
     int month, day;
     private Button button;
+    private double hurdle=0.6;
 
     //==============================================================================================
     // Activity Methods
@@ -586,7 +587,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                             if (count == 5) {
                                 faceCroped = ImageUtils.cropFace(faces[i], bitmap, rotate);
                                 if (faceCroped != null) {
-                                    SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+                                    SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
                                     SharedPreferences.Editor editor = pref.edit();
                                     happy = clml.sendRequestToCMLE(faceCroped);
                                     happy = happy.substring(happy.indexOf(",")+1, happy.indexOf("]")-1);
