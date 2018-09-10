@@ -151,12 +151,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
 
-        if (id == R.id.nav_emotion) {
-            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
-            startActivity(intent);
-
-
-        } else if (id == R.id.nav_smile) {
+       if (id == R.id.nav_smile) {
             Intent intent = new Intent(getApplicationContext(), smileDiary.class);
             startActivity(intent);
         }
