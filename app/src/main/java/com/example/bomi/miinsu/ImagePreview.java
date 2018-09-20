@@ -21,7 +21,7 @@ public class ImagePreview extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_preview);
         mContext = this;
-        emotionAdapter emo=new emotionAdapter(this);
+
 
         Intent i = getIntent();
         Bundle extras = i.getExtras();
