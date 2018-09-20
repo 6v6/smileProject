@@ -38,9 +38,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         button = (Button)findViewById(R.id.button3);
 
         intent = new Intent();
-        addr = "위치를 지정하세요";
-        intent.putExtra("place",addr);
-        setResult(RESULT_OK,intent);
+        setResult(2,intent);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()

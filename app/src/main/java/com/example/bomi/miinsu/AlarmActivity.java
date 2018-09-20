@@ -209,28 +209,33 @@ public class AlarmActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 101) {
-            String place = data.getExtras().getString("place");  //위치 이름
+            if(resultCode == RESULT_OK) {
+                String place = data.getExtras().getString("place");  //위치 이름
 
-            if (place != null) {
+                if (place != null) {
 
-                latitude = data.getExtras().getDouble("latitude");
-                longitude = data.getExtras().getDouble("longitude");
+                    latitude = data.getExtras().getDouble("latitude");
+                    longitude = data.getExtras().getDouble("longitude");
 
-                btn2.setText(place);
-                editor = pref.edit();
-                editor.putString("setPlace", place);
-                editor.putString("latitude", Double.toString(latitude));
-                editor.putString("longitude", Double.toString(longitude));
-                editor.commit();
-                if(latitude != 0.0) {
-                    if (pref.getBoolean("pSwitch", false)) {
-                        service.putExtra("latitude", latitude);
-                        service.putExtra("longitude", longitude);
-                        startService(service);
+                    btn2.setText(place);
+                    editor = pref.edit();
+                    editor.putString("setPlace", place);
+                    editor.putString("latitude", Double.toString(latitude));
+                    editor.putString("longitude", Double.toString(longitude));
+                    editor.commit();
+                    if (latitude != 0.0) {
+                        if (pref.getBoolean("pSwitch", false)) {
+                            service.putExtra("latitude", latitude);
+                            service.putExtra("longitude", longitude);
+                            startService(service);
+                        }
                     }
+                } else {
+                    btn2.setText("위치를 지정하세요");
                 }
             } else {
                 btn2.setText("위치를 지정하세요");
+                stopService(service);
             }
         }
     }

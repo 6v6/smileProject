@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
         happy = pref.getFloat("happy",0);
         Log.e("happy::",happy+"");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -151,7 +151,13 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
 
-       if (id == R.id.nav_smile) {
+//        if (id == R.id.nav_emotion) {
+//            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
+//            startActivity(intent);
+//
+//
+//        }
+        if (id == R.id.nav_smile) {
             Intent intent = new Intent(getApplicationContext(), smileDiary.class);
             startActivity(intent);
         }

@@ -18,7 +18,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bomi.miinsu.activity.FaceDetectDiaryActivity;
@@ -27,16 +26,14 @@ import com.example.bomi.miinsu.activity.FaceDetectGrayActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class MissionActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final int RC_HANDLE_CAMERA_PERM_GRAY = 2;
     public static final String TAG = MainActivity.class.getSimpleName();
     private FirebaseAuth mAuth;
-    private String email;
-    private TextView userEmail;
-    private TextView userName;
+    private GoogleSignInClient mGoogleSignInClient;
 
     private Context mContext;
     @Override
@@ -47,7 +44,6 @@ public class MissionActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -56,15 +52,6 @@ public class MissionActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        View headerView = navigationView.getHeaderView(0);
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
-
-        email = user.getEmail();
-        userEmail = (TextView) headerView.findViewById(R.id.email);
-        userName = (TextView) headerView.findViewById(R.id.name);
-        userEmail.setText(email);
-        userName.setText(mAuth.getCurrentUser().getDisplayName().toString());
     }
 
     @Override
@@ -104,7 +91,12 @@ public class MissionActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-       if (id == R.id.nav_smile) {
+//        if (id == R.id.nav_emotion) {
+//            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
+//            startActivity(intent);
+//
+
+        if (id == R.id.nav_smile) {
             Intent intent = new Intent(getApplicationContext(), smileDiary.class);
             startActivity(intent);
         }
