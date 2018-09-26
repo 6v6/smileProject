@@ -1,5 +1,6 @@
 package com.example.bomi.miinsu;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -42,6 +43,7 @@ public class smileDiary extends AppCompatActivity {
     private static final String TAG ="emotion:";
     private GridView gridView;
     private smileAdapter smileAdapter;
+    private String imgPath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,14 +129,9 @@ class smileAdapter extends BaseAdapter {
 
         String imgPath = getImageInfo(imgData, geoData, thumbsIDList.get(position));
 
-        Log.d("imgPath:",imgPath);
-
-        //imageName = getImageName(imgData, geoData, thumbsIDList.get(position));
-
         happy = imgPath.substring(31, imgPath.indexOf("-"));
-        Log.d("imgPath:",happy);
+
         day = imgPath.substring(imgPath.indexOf("-") + 1, imgPath.indexOf(".") - 1);
-        Log.d("beforedate:", "|" + day + "|");
 
         view.setDate(day + "|웃음| " + happy + "%");
         view.setImage(bitmap);

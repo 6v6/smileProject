@@ -30,13 +30,7 @@
             android:id="@+id/aboutPhoto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint=" 한줄평 남기기" />
+            android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/btn_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="저장" />
     </LinearLayout>
 </FrameLayout>
