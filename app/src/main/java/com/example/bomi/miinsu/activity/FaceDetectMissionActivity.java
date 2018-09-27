@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -62,6 +63,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -112,8 +114,6 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
 
     private String BUNDLE_CAMERA_ID = "camera";
 
-    //미션 확인 및 일차바꾸기
-    private static int MISSION_PASS = 1;
     private int smileCount=0;
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
     private DatabaseReference myRef = Database.getReference();
@@ -121,8 +121,7 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
     private FirebaseAuth mAuth;
     String email, ruser;
     String day;
-
-
+    String percentage, total,clickMission;
     //RecylerView face image
     private HashMap<Integer, Integer> facesCount = new HashMap<>();
     private ImagePreviewAdapter imagePreviewAdapter;
@@ -157,10 +156,16 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
         //미션 횟수 보여주기
         Intent mission = getIntent();
         Bundle extras = mission.getExtras();
-        String total = extras.getString("Mission");
-
+        clickMission = extras.getString("Mission");
         smileTv = (TextView)findViewById(R.id.smileText);
-        smileTv.setText(smileCount+"/"+total.substring(0,2));
+        if (clickMission.contains("%")&&clickMission.contains("번")) {
+            percentage = clickMission.substring(0, 2);
+            total = clickMission.substring(6,7);
+        }
+        else {
+            total = clickMission.substring(0,1);
+        }
+        smileTv.setText(smileCount+"/"+total);
 
         mView = (SurfaceView) findViewById(R.id.surfaceview);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -185,6 +190,7 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
+
     }
 
 
@@ -499,7 +505,6 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new SaveImageTask().execute(currentData);
                     Intent intent=new Intent(getApplicationContext(),MissionList.class);
                     startActivity(intent);
                     finish();
@@ -608,48 +613,27 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
 
                                     final Handler handler = new Handler(Looper.getMainLooper());
 
-                                    Intent mission = getIntent();
+                                    /*Intent mission = getIntent();
                                     Bundle extras = mission.getExtras();
-                                    String clickMission = extras.getString("Mission");
-                                    final String total = clickMission.substring(0, 2);
-                                    final int[] time = {0};
-                                    //Integer.parseInt(total)/10
-
-                                    /*//초 미션
-                                    if(clickMission.contains("초")){
-                                       handler.post(new Runnable() {
-                                           @Override
-                                           public void run() {
-                                               new CountDownTimer(10 * 1000, 1000) {
-                                                   @Override
-                                                   public void onTick(long millisUntilFinished) {
-                                                       time[0]++;
-                                                       smileTv.setText(time[0] +"/"+ total);
-                                                   }
-
-                                                   @Override
-                                                   public void onFinish() {
-
-                                                   }
-                                               }.start();
-                                           }
-                                       });
-
-                                        if(Double.parseDouble(happy)>0.3){
-                                            onNextDay();
-                                            handler.post(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    showDialog("통과하셨습니다!");
-                                                }
-                                            });
+                                    String clickMission = extras.getString("Mission");*/
+                                    if (clickMission.contains("%")&&clickMission.contains("번")) {
+                                        Double dpercentage = Double.parseDouble(percentage);
+                                        dpercentage = dpercentage * 0.01;
+                                        if(Double.parseDouble(happy)>dpercentage) {
+                                            numberMission(total);
                                         }
 
-                                    }*/
-
-                                    //횟수 미션
-                                    if(Double.parseDouble(happy)>0&&MISSION_PASS!=101) {
-                                        numberMission();
+                                    } else if(clickMission.contains("%")) {
+                                        Double dpercentage = Double.parseDouble(percentage);
+                                        dpercentage = dpercentage * 0.01;
+                                        if(Double.parseDouble(happy)>dpercentage) {
+                                            numberMission(total);
+                                        }
+                                }
+                                else {
+                                        if(Double.parseDouble(happy)>0) {
+                                            numberMission(total);
+                                        }
                                     }
 
                                     handler.post(new Runnable() {
@@ -685,7 +669,6 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     day = dataSnapshot.child(ruser).child("challenge").getValue(String.class);
-
                     int newDay=Integer.parseInt(day);
                     newDay++;
                     myRef.child("users").child(ruser).child("challenge").setValue(String.valueOf(newDay));
@@ -697,19 +680,25 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
             });
         }
         //횟수 미션
-        private void numberMission(){
-
-            Intent mission = getIntent();
-            Bundle extras = mission.getExtras();
-            String clickMission = extras.getString("Mission");
-            String total=clickMission.substring(0,1);
-
+        private void numberMission(String total){
+            SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
+            int passsNumber = pref.getInt("passNumber",1);
             smileCount++;
             if(smileCount==Integer.parseInt(total))
             {
                 setText(smileTv,smileCount+"/"+total);
-                onNextDay();
-                MISSION_PASS=101;
+                if(passsNumber==3){
+                    onNextDay();
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putInt("passNumber", 1);
+                    editor.commit();
+                }
+                else{
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putInt("passNumber", passsNumber+1);
+                    editor.commit();
+                }
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -725,6 +714,7 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
         }
 
 
+
         private void showDialog(String msg) {
 
             android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(FaceDetectMissionActivity.this);
@@ -733,7 +723,6 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
             builder.setCancelable(true);
             builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    MISSION_PASS=1;
                     Intent intent=new Intent(getApplicationContext(),MissionList.class);
                     startActivity(intent);
                     finish();
@@ -761,47 +750,6 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
         }
     }
 
-    //사진 저장
-    private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
-
-        @Override
-        protected Void doInBackground(byte[]... data) {
-            FileOutputStream outStream = null;
-
-            // Write to SD Card
-            try {
-                File sdCard = Environment.getExternalStorageDirectory();
-                File dir = new File (sdCard.getAbsolutePath() + "/Testtest");
-                dir.mkdirs();
-
-                //fileName : 측정 값
-                String fileName = String.format("%d.jpg", System.currentTimeMillis());
-                File outFile = new File(dir, fileName);
-
-                outStream = new FileOutputStream(outFile);
-                outStream.write(data[0]);
-                outStream.flush();
-                outStream.close();
-
-                Log.d(TAG, "onPictureTaken - wrote bytes: " + data.length + " to "
-                        + outFile.getAbsolutePath());
-
-                refreshGallery(outFile);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-            }
-            return null;
-        }
-        private void refreshGallery(File file) {
-            Intent mediaScanIntent = new Intent( Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-            mediaScanIntent.setData(Uri.fromFile(file));
-            sendBroadcast(mediaScanIntent);
-        }
-
-    }
 
     public static int setCameraDisplayOrientation(Activity activity,
                                                   int cameraId, android.hardware.Camera camera) {

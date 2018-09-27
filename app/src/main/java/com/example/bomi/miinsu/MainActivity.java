@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        SharedPreferences pref = getSharedPreferences("FaceDetect", MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences("FaceDetectSmile", MODE_PRIVATE);
         happy = pref.getFloat("happy",0);
         Log.e("happy::",happy+"");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity
         FirebaseUser user = mAuth.getCurrentUser();
 
        email = user.getEmail();
-        ruser = email.substring(0, email.indexOf("."));
+       ruser = email.substring(0, email.indexOf("."));
 
         userEmail = (TextView) headerView.findViewById(R.id.email);
         userName = (TextView) headerView.findViewById(R.id.name);
@@ -151,12 +151,6 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
 
-//        if (id == R.id.nav_emotion) {
-//            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
-//            startActivity(intent);
-//
-//
-//        }
         if (id == R.id.nav_smile) {
             Intent intent = new Intent(getApplicationContext(), smileDiary.class);
             startActivity(intent);
@@ -166,6 +160,10 @@ public class MainActivity extends AppCompatActivity
         }
         else if(id==R.id.nav_alarm) {
             Intent intent = new Intent(getApplicationContext(),AlarmActivity.class);
+            startActivity(intent);
+        }
+        else if(id==R.id.nav_challenge) {
+            Intent intent=new Intent(getApplicationContext(),MissionActivity.class);
             startActivity(intent);
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -1,13 +1,9 @@
 package com.example.bomi.miinsu;
 
-import android.Manifest;
+
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,24 +13,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.example.bomi.miinsu.activity.FaceDetectDiaryActivity;
+
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.example.bomi.miinsu.activity.FaceDetectGrayActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MissionActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final int RC_HANDLE_CAMERA_PERM_GRAY = 2;
     public static final String TAG = MainActivity.class.getSimpleName();
     private FirebaseAuth mAuth;
-    private GoogleSignInClient mGoogleSignInClient;
+    private TextView userEmail;
+    private TextView userName;
 
+    String email;
+    String ruser;
     private Context mContext;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +46,23 @@ public class MissionActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View headerView = navigationView.getHeaderView(0);
+
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        email = user.getEmail();
+        ruser = email.substring(0, email.indexOf("."));
+
+        userEmail = (TextView) headerView.findViewById(R.id.email);
+        userName = (TextView) headerView.findViewById(R.id.name);
+
+
+        userEmail.setText(email);
+        userName.setText(mAuth.getCurrentUser().getDisplayName().toString());
+
     }
 
     @Override
@@ -91,11 +102,6 @@ public class MissionActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-//        if (id == R.id.nav_emotion) {
-//            Intent intent = new Intent(getApplicationContext(), emotionDiary.class);
-//            startActivity(intent);
-//
-
         if (id == R.id.nav_smile) {
             Intent intent = new Intent(getApplicationContext(), smileDiary.class);
             startActivity(intent);
@@ -105,6 +111,10 @@ public class MissionActivity extends AppCompatActivity
         }
         else if(id==R.id.nav_alarm) {
             Intent intent = new Intent(getApplicationContext(),AlarmActivity.class);
+            startActivity(intent);
+        }
+        else if(id==R.id.nav_challenge) {
+            Intent intent=new Intent(getApplicationContext(),MissionActivity.class);
             startActivity(intent);
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -121,7 +131,7 @@ public class MissionActivity extends AppCompatActivity
     }
 
     public void onMissonStart(View view) {
-        Intent intent = new Intent(getApplication(),FaceDetectDiaryActivity.class);
+        Intent intent = new Intent(getApplication(),MissionList.class);
         startActivity(intent);
     }
 }

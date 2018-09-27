@@ -21,6 +21,8 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.bomi.miinsu.activity.FaceDetectGrayActivity;
 import com.example.bomi.miinsu.activity.FaceDetectMissionActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,14 +30,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Random;
 
 public class MissionList extends AppCompatActivity {
     ListView listView;
     ListAdapter adapter;
     private FirebaseDatabase Database = FirebaseDatabase.getInstance();
-    private DatabaseReference myRef = Database.getReference();
-    private DatabaseReference userdb = Database.getReference("challenge");
-
+    private DatabaseReference chdb = Database.getReference("challenge");
+    Calendar calendar = Calendar.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,8 +51,6 @@ public class MissionList extends AppCompatActivity {
         getChallenge();
 
         listView.setAdapter(adapter);
-
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
@@ -63,20 +64,24 @@ public class MissionList extends AppCompatActivity {
             }
         });
 
+
     }
-    //챌린저 가져오기
+
+
+    //챌린지 가져오기
     public void getChallenge(){
-        userdb.addListenerForSingleValueEvent(new ValueEventListener() {
+        String day = calendar.get(Calendar.DATE)+"";
+        int iday = Integer.parseInt(day);
+        iday = iday%3+1;
+        chdb.child(iday+"").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot datas : dataSnapshot.getChildren()) {
-
                     String get = datas.getValue().toString();
                     Log.e("getChallenge", get);
                     adapter.addItem(new ListItem(get));
                     adapter.notifyDataSetChanged();
                 }
-
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -84,6 +89,7 @@ public class MissionList extends AppCompatActivity {
         });
 
     }
+
 
     class ListAdapter extends BaseAdapter {
         ArrayList<ListItem> items = new ArrayList<ListItem>();

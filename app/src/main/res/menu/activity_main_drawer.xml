@@ -18,8 +18,9 @@
             android:title="알람설정" />
 
         <item
-            android:title="출석부"
-            android:icon="@drawable/calendar"/>
+            android:id="@+id/nav_challenge"
+            android:title="스마일 챌린지"
+            android:icon="@drawable/challenge"/>
 
         <item
             android:id="@+id/nav_logout"
