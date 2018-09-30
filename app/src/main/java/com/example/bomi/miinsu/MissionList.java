@@ -125,5 +125,3 @@ public class MissionList extends AppCompatActivity {
     }
 
 }
-
-

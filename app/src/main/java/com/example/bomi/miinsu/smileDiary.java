@@ -122,7 +122,7 @@ class smileAdapter extends BaseAdapter {
 
 
         BitmapFactory.Options bo = new BitmapFactory.Options();
-        bo.inSampleSize = 6;
+        bo.inSampleSize = 2;
         ContentResolver cr = mContext.getApplicationContext().getContentResolver();
         int id = Integer.parseInt(thumbsIDList.get(position));
         Bitmap bitmap = MediaStore.Images.Thumbnails.getThumbnail(cr, id, MediaStore.Images.Thumbnails.MICRO_KIND, bo);

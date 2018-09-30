@@ -629,8 +629,8 @@ public final class FaceDetectMissionActivity extends AppCompatActivity implement
                                         if(Double.parseDouble(happy)>dpercentage) {
                                             numberMission(total);
                                         }
-                                }
-                                else {
+                                    }
+                                    else {
                                         if(Double.parseDouble(happy)>0) {
                                             numberMission(total);
                                         }

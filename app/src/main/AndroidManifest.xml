@@ -7,7 +7,6 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -37,16 +36,13 @@
             android:name=".MainActivity"
             android:label="SmileProject"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
-        android:name=".activity.FaceDetectGrayActivity"
-        android:screenOrientation="portrait"
-        android:configChanges="keyboardHidden|orientation" />
-
-
+            android:name=".activity.FaceDetectGrayActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:screenOrientation="portrait" />
         <activity
-        android:name=".activity.FaceDetectDiaryActivity"
-        android:screenOrientation="fullSensor" />
+            android:name=".activity.FaceDetectDiaryActivity"
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".activity.FaceDetectMissionActivity"
             android:screenOrientation="fullSensor" />
@@ -58,6 +54,7 @@
         <activity
             android:name=".smileDiary"
             android:label="웃음일기" />
+
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.example.bomi.miinsu"
@@ -73,9 +70,11 @@
             android:value="AIzaSyCbtiVrfAGHzhPc4U0XYozYbd3i5mMfd7E" />
 
         <activity android:name=".AlarmViewActivity" />
+
         <activity
             android:name=".AlarmActivity"
             android:label="알람설정" />
+
         <activity android:name=".ImagePreview" />
         <activity
             android:name=".MapsActivity"
@@ -91,17 +90,16 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".AlarmDialog"></activity>
-        <service
-            android:name=".MyFirebaseMessagingService">
+        <activity android:name=".AlarmDialog" />
+
+        <service android:name=".MyFirebaseMessagingService">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".MyFirebaseInstanceIDService">
+        <service android:name=".MyFirebaseInstanceIDService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
     </application>

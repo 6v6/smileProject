@@ -72,8 +72,8 @@ public class MainActivity extends AppCompatActivity
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
 
-       email = user.getEmail();
-       ruser = email.substring(0, email.indexOf("."));
+        email = user.getEmail();
+        ruser = email.substring(0, email.indexOf("."));
 
         userEmail = (TextView) headerView.findViewById(R.id.email);
         userName = (TextView) headerView.findViewById(R.id.name);
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(intent);
         }
         else if (id==R.id.nav_logout){
-             onLogOut();
+            onLogOut();
         }
         else if(id==R.id.nav_alarm) {
             Intent intent = new Intent(getApplicationContext(),AlarmActivity.class);
@@ -171,13 +171,13 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-   public void onLogOut() {
-       mAuth = FirebaseAuth.getInstance();
-       mAuth.signOut();
-       finish();
-       Intent intent=new Intent(getApplicationContext(),loginActivity.class);
-       startActivity(intent);
-   }
+    public void onLogOut() {
+        mAuth = FirebaseAuth.getInstance();
+        mAuth.signOut();
+        finish();
+        Intent intent=new Intent(getApplicationContext(),loginActivity.class);
+        startActivity(intent);
+    }
 
     public void onMissonActivity(View view) {
         Intent intent=new Intent(getApplicationContext(),MissionActivity.class);
