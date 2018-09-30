@@ -89,8 +89,8 @@ public class AlarmActivity extends AppCompatActivity {
         btn1 = (Button) findViewById(R.id.button4);
         btn2 = (Button) findViewById(R.id.button3);
         tSwitch = (Switch) findViewById(R.id.switch1);
-        pSwitch = (Switch) findViewById(R.id.switch2);
-        rSwitch = (Switch) findViewById(R.id.switch3);
+        pSwitch = (Switch) findViewById(R.id.switch3);
+        rSwitch = (Switch) findViewById(R.id.switch2);
 
         tSwitch.setChecked(pref.getBoolean("tSwitch", false));
         pSwitch.setChecked(pref.getBoolean("pSwitch", false));
