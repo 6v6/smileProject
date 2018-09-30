@@ -39,7 +39,7 @@
         <activity
             android:name=".activity.FaceDetectGrayActivity"
             android:configChanges="keyboardHidden|orientation"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".activity.FaceDetectDiaryActivity"
             android:screenOrientation="fullSensor" />

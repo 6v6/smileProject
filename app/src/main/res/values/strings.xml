@@ -8,6 +8,7 @@
     <string name="action_settings">Settings</string>
 
     <string name="title_activity_mission">스마일 챌린지</string>
+    <string name="title_activity_main">스마일 프로젝트</string>
     <string name="emotion_diary">감정일기</string>
     <string name="smile_diary">웃음일기</string>
     <string name="logout">로그아웃</string>
