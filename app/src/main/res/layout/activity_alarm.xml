@@ -45,10 +45,11 @@
         <TextView
             android:id="@+id/textView17"
             android:layout_width="123dp"
-            android:layout_height="wrap_content"
-            android:text="랜덤시간"
-            android:textSize="22dp"
-            android:gravity="center"/>
+            android:layout_height="100dp"
+            android:gravity="center"
+            android:text="랜덤시간
+            (푸시메시지)"
+            android:textSize="22dp" />
 
         <Switch
             android:id="@+id/switch2"
